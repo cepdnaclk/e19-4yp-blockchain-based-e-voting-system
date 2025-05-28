@@ -1,5 +1,3 @@
-import { useNavigate } from "react-router-dom";
-
 export default function VoterDashboard() {
   return (
     <div className="p-4">

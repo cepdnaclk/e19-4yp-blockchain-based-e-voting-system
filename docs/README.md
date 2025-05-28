@@ -41,19 +41,36 @@ This is a sample image, to show how to add images to your page. To learn more op
 -->
 
 
-## Abstract
+### Abstract 
 
-## Related works
+This project explores the development of a **secure, transparent, and verifiable blockchain-based electronic voting (e-voting) system** aimed at addressing the challenges of traditional paper-based and centralized electronic voting systems. By leveraging blockchain technology, the system ensures **ballot secrecy, voter verifiability, contestability, and auditability**, making elections more secure and resistant to tampering.  
 
-## Methodology
+The research involves a **comprehensive analysis of existing e-voting systems**, expert interviews with blockchain and cybersecurity professionals, and case study evaluations to identify potential improvements. A prototype of the e-voting system will be developed and tested with a controlled user group to assess **usability, security, and scalability**.  
 
-## Experiment Setup and Implementation
 
-## Results and Analysis
+#### Key Objectives  
 
-## Conclusion
+✅ **Enhancing security** by preventing fraud and unauthorized modifications to votes  
+✅ **Ensuring transparency** through a decentralized and immutable ledger  
+✅ **Providing voter verifiability** without compromising ballot secrecy  
+✅ **Analyzing usability and accessibility** through user feedback and expert reviews  
 
-## Publications
+Through this research, we aim to contribute to the **future of digital democracy** by demonstrating the feasibility of blockchain-based e-voting systems while addressing potential challenges and limitations.
+
+#### Evolution of voting
+![Screenshot 2025-05-28 145034](https://github.com/user-attachments/assets/bfdbc735-fc95-4320-a18d-f326e9ae7098)
+
+### Related works
+
+### Methodology
+
+### Experiment Setup and Implementation
+
+### Results and Analysis
+
+### Conclusion
+
+### Publications
 [//]: # "Note: Uncomment each once you uploaded the files to the repository"
 
 <!-- 1. [Semester 7 report](./) -->
@@ -63,7 +80,7 @@ This is a sample image, to show how to add images to your page. To learn more op
 <!-- 5. Author 1, Author 2 and Author 3 "Research paper title" (2021). [PDF](./). -->
 
 
-## Links
+### Links
 
 [//]: # ( NOTE: EDIT THIS LINKS WITH YOUR REPO DETAILS )
 

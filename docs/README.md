@@ -20,18 +20,18 @@ title: Blockchain based e-voting system
 #### Supervisors
 
 - Prof. Manjula Sandirigama, [email](mailto:manjula.sandirigama@eng.pdn.ac.lk)
-<!-- 
+
 #### Table of content
 
 1. [Abstract](#abstract)
-2. [Related works](#related-works)
-3. [Methodology](#methodology)
-4. [Experiment Setup and Implementation](#experiment-setup-and-implementation)
-5. [Results and Analysis](#results-and-analysis)
-6. [Conclusion](#conclusion)
+2. [High-Level System Architecture](#high-level-system-architecture)
+3. [Voter Registration and Authentication](#voter-registration-and-authentication)
+4. [Candidate Registration](#candidate-registration)
+5. [Voting Process](#voting-process)
+6. [Counting and Result Publication](#counting-and-result-publication)
 7. [Publications](#publications)
 8. [Links](#links)
--->
+
 ---
 
 <!-- 
@@ -41,7 +41,7 @@ This is a sample image, to show how to add images to your page. To learn more op
 -->
 
 
-### Abstract 
+## Abstract 
 
 This project explores the development of a **secure, transparent, and verifiable blockchain-based electronic voting (e-voting) system** aimed at addressing the challenges of traditional paper-based and centralized electronic voting systems. By leveraging blockchain technology, the system ensures **ballot secrecy, voter verifiability, contestability, and auditability**, making elections more secure and resistant to tampering.  
 
@@ -79,7 +79,7 @@ There are three system states:
 
 ---
 
-### Voter Registration and Authentication
+## Voter Registration and Authentication
 
 ![11](https://github.com/user-attachments/assets/bcf28d20-f7d8-4e89-9a02-1e7091d83447)
 
@@ -101,7 +101,7 @@ The Voter Registration Module verifies voter identities and securely assigns cry
 
 ---
 
-### Candidate Registration
+## Candidate Registration
 ![22](https://github.com/user-attachments/assets/cd2fbe85-3fa5-4b2d-8c3f-7589396e87f9)
 
 The Candidate Registration Module ensures only eligible candidates are registered and that their details are securely stored on the blockchain.
@@ -120,7 +120,7 @@ The Candidate Registration Module ensures only eligible candidates are registere
 
 ---
 
-### Voting Process
+## Voting Process
 ![33](https://github.com/user-attachments/assets/a8eaffc6-0b87-4085-b8d5-0a921c47754f)
 
 The Voting Module enables voters to cast encrypted votes securely using threshold cryptography and homomorphic encryption. Votes are stored off-chain in IPFS, while only their hashes are recorded on the blockchain.
@@ -141,7 +141,7 @@ The Voting Module enables voters to cast encrypted votes securely using threshol
 
 ---
 
-### Counting and Result Publication
+## Counting and Result Publication
 ![44](https://github.com/user-attachments/assets/85cbb6fc-c369-42bf-8910-4e4c0a7043a7)
 
 The Counting & Result Module aggregates encrypted votes off-chain using homomorphic encryption and publishes the final result on the blockchain.

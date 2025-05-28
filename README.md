@@ -59,7 +59,7 @@ The Voter Registration Module verifies voter identities and securely assigns cry
 
 ### Candidate Registration
 
-![alt text](assets/images/candidate-registration-high-level.jpg)
+![candidate-registration-highlevel-overview](assets/images/candidate-registration-high-level.jpg)
 The Candidate Registration Module ensures only eligible candidates are registered and that their details are securely stored on the blockchain.
 
 **Components:**
@@ -78,7 +78,7 @@ The Candidate Registration Module ensures only eligible candidates are registere
 
 ### Voting Process
 
-![alt text](assets/images/voting-phase-high-level.jpg)
+![votin-process-high-level-overview](assets/images/voting-phase-high-level.jpg)
 The Voting Module enables voters to cast encrypted votes securely using threshold cryptography and homomorphic encryption. Votes are stored off-chain in IPFS, while only their hashes are recorded on the blockchain.
 
 **Components:**
@@ -115,3 +115,10 @@ The Counting & Result Module aggregates encrypted votes off-chain using homomorp
 2. Homomorphic encryption is used to compute vote tallies without decryption.
 3. The final tally is decrypted and stored on IPFS; its hash is recorded on the blockchain.
 4. The results are displayed via a secure web interface.
+
+---
+
+### Additional References
+
+- **Refer to our [Literature Review](assets/LiteratureReviewPaper.pdf)**
+- **Refer to our [Project Proposal](assets/ResearchProposal.pdf)**

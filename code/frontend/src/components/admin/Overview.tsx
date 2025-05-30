@@ -61,7 +61,7 @@ const Overview: React.FC = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Box
           sx={{
-            backgroundColor: `${color}15`,
+            backgroundColor: alpha(color, 0.08),
             borderRadius: '50%',
             p: 1,
             mr: 2,

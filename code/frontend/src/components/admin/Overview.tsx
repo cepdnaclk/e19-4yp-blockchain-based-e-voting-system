@@ -11,6 +11,9 @@ import {
   People as PeopleIcon,
   HowToVote as VoteIcon,
   Event as EventIcon,
+  Warning as WarningIcon,
+  Feedback as FeedbackIcon,
+  LocationOn as LocationIcon,
 } from '@mui/icons-material';
 
 const Overview: React.FC = () => {
@@ -21,6 +24,8 @@ const Overview: React.FC = () => {
     totalVoters: 1000,
     votedVoters: 468,
     activeElections: 2,
+    securityAlerts: 1,
+    userComplaints: 1,
     pollingStations: 10,
   };
 
@@ -113,7 +118,7 @@ const Overview: React.FC = () => {
         Dashboard Overview
       </Typography>
       <Grid container spacing={3} sx={{ width: '100%' }}>
-      <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4}>
           <StatCard
             title="Active Elections"
             value={stats.activeElections}
@@ -123,10 +128,26 @@ const Overview: React.FC = () => {
         </Grid>
         <Grid item xs={12} md={4}>
           <StatCard
+            title="Security Alerts"
+            value={stats.securityAlerts}
+            icon={<WarningIcon sx={{ color: theme.palette.error.main }} />}
+            color={theme.palette.error.main}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <StatCard
+            title="User Complaints"
+            value={stats.userComplaints}
+            icon={<FeedbackIcon sx={{ color: theme.palette.warning.main }} />}
+            color={theme.palette.warning.main}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <StatCard
             title="Polling Stations"
             value={stats.pollingStations}
-            icon={<EventIcon sx={{ color: theme.palette.info.main }} />}
-            color={theme.palette.info.main}
+            icon={<LocationIcon sx={{ color: theme.palette.success.main }} />}
+            color={theme.palette.success.main}
           />
         </Grid>
         <Grid item xs={12} md={4}>

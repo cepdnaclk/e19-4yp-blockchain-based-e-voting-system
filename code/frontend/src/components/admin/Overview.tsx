@@ -6,12 +6,13 @@ import {
   Typography,
   LinearProgress,
   useTheme,
+  Chip,
 } from '@mui/material';
 import {
   People as PeopleIcon,
   HowToVote as VoteIcon,
   Event as EventIcon,
-  Warning as WarningIcon,
+  CheckCircle as CheckCircleIcon,
   Feedback as FeedbackIcon,
   LocationOn as LocationIcon,
 } from '@mui/icons-material';
@@ -24,7 +25,7 @@ const Overview: React.FC = () => {
     totalVoters: 1000,
     votedVoters: 468,
     activeElections: 2,
-    securityAlerts: 1,
+    systemStatus: "Active",
     userComplaints: 1,
     pollingStations: 10,
   };
@@ -35,7 +36,8 @@ const Overview: React.FC = () => {
     icon: React.ReactNode;
     color: string;
     progress?: number;
-  }> = ({ title, value, icon, color, progress }) => (
+    status?: string;
+  }> = ({ title, value, icon, color, progress, status }) => (
     <Paper
       elevation={2}
       sx={{
@@ -71,9 +73,22 @@ const Overview: React.FC = () => {
           {title}
         </Typography>
       </Box>
-      <Typography variant="h4" sx={{ mb: 1, fontWeight: 600 }}>
-        {value}
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+          {value}
+        </Typography>
+        {status && (
+          <Chip
+            label={status}
+            size="small"
+            sx={{
+              bgcolor: `${color}15`,
+              color: color,
+              fontWeight: 500,
+            }}
+          />
+        )}
+      </Box>
       {progress !== undefined && (
         <Box sx={{ mt: 'auto' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -120,18 +135,19 @@ const Overview: React.FC = () => {
       <Grid container spacing={3} sx={{ width: '100%' }}>
         <Grid item xs={12} md={4}>
           <StatCard
-            title="Active Elections"
-            value={stats.activeElections}
-            icon={<EventIcon sx={{ color: theme.palette.info.main }} />}
-            color={theme.palette.info.main}
+            title="System Status"
+            value="Online"
+            status={stats.systemStatus}
+            icon={<CheckCircleIcon sx={{ color: theme.palette.success.main }} />}
+            color={theme.palette.success.main}
           />
         </Grid>
         <Grid item xs={12} md={4}>
           <StatCard
-            title="Security Alerts"
-            value={stats.securityAlerts}
-            icon={<WarningIcon sx={{ color: theme.palette.error.main }} />}
-            color={theme.palette.error.main}
+            title="Active Elections"
+            value={stats.activeElections}
+            icon={<EventIcon sx={{ color: theme.palette.info.main }} />}
+            color={theme.palette.info.main}
           />
         </Grid>
         <Grid item xs={12} md={4}>
@@ -146,8 +162,8 @@ const Overview: React.FC = () => {
           <StatCard
             title="Polling Stations"
             value={stats.pollingStations}
-            icon={<LocationIcon sx={{ color: theme.palette.success.main }} />}
-            color={theme.palette.success.main}
+            icon={<LocationIcon sx={{ color: theme.palette.primary.main }} />}
+            color={theme.palette.primary.main}
           />
         </Grid>
         <Grid item xs={12} md={4}>

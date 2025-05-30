@@ -1,13 +1,31 @@
-import Login from "./components/Login";
-import VoterDashboard from "./components/VoterDashboard";
-import AdminDashboard from "./components/AdminDashboard";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import React from 'react';
+import { createBrowserRouter } from 'react-router-dom';
+import UserLogin from './components/UserLogin';
+import AdminLogin from './components/AdminLogin';
+import AdminOTP from './components/AdminOTP';
+import Layout from './components/Layout';
 
-export const router = createBrowserRouter([
-  { path: "/", element: <Login /> },
-  { path: "/voter", element: <VoterDashboard /> },
-  { path: "/admin", element: <AdminDashboard /> },
+// Placeholder components for dashboards
+const UserDashboard: React.FC = () => (
+  <div>User Dashboard (Coming Soon)</div>
+);
+
+const AdminDashboard: React.FC = () => (
+  <div>Admin Dashboard (Coming Soon)</div>
+);
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />,
+    children: [
+      { path: '', element: <UserLogin /> },
+      { path: 'user/dashboard', element: <UserDashboard /> },
+      { path: 'admin/login', element: <AdminLogin /> },
+      { path: 'admin/otp', element: <AdminOTP /> },
+      { path: 'admin/dashboard', element: <AdminDashboard /> },
+    ],
+  },
 ]);
-export default function AppRouter() {
-  return <RouterProvider router={router} />;
-}
+
+export default router;

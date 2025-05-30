@@ -922,7 +922,7 @@ const UserDashboard: React.FC = () => {
                           color="text.secondary"
                           align="center"
                         >
-                          Select a candidate to cast your vote
+                          Select a candidate to cast your vote 
                         </Typography>
                       )}
                       <Button

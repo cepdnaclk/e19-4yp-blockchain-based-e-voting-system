@@ -64,7 +64,11 @@ const Candidates: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [candidateToDelete, setCandidateToDelete] = useState<string | null>(null);
   const [candidateData, setCandidateData] = useState({
+    id: '',
     name: '',
     birthday: new Date(),
     address: '',
@@ -129,13 +133,57 @@ const Candidates: React.FC = () => {
     setTabValue(newValue);
   };
 
+  const handleEditCandidate = (candidate: Candidate) => {
+    setIsEditMode(true);
+    setCandidateData({
+      id: candidate.id,
+      name: candidate.name,
+      birthday: candidate.birthday,
+      address: candidate.address,
+      mobileNumber: candidate.mobileNumber,
+      email: candidate.email,
+      photo: candidate.photo,
+      party: candidate.party,
+      voteNumber: candidate.voteNumber,
+      electionId: candidate.electionId || '',
+    });
+    setOpenDialog(true);
+  };
+
+  const handleDeleteClick = (candidateId: string) => {
+    setCandidateToDelete(candidateId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    // TODO: Implement delete logic
+    console.log('Deleting candidate:', candidateToDelete);
+    setDeleteDialogOpen(false);
+    setCandidateToDelete(null);
+  };
+
   const handleCreateCandidate = () => {
+    setIsEditMode(false);
+    setCandidateData({
+      id: '',
+      name: '',
+      birthday: new Date(),
+      address: '',
+      mobileNumber: '',
+      email: '',
+      photo: '',
+      party: '',
+      voteNumber: '',
+      electionId: '',
+    });
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    setIsEditMode(false);
     setCandidateData({
+      id: '',
       name: '',
       birthday: new Date(),
       address: '',
@@ -149,8 +197,13 @@ const Candidates: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    // TODO: Implement candidate creation logic
-    console.log('Creating candidate:', candidateData);
+    if (isEditMode) {
+      // TODO: Implement edit logic
+      console.log('Updating candidate:', candidateData);
+    } else {
+      // TODO: Implement create logic
+      console.log('Creating candidate:', candidateData);
+    }
     handleCloseDialog();
   };
 
@@ -200,10 +253,19 @@ const Candidates: React.FC = () => {
               secondaryAction={
                 candidate.status === 'inactive' && (
                   <Box>
-                    <IconButton edge="end" aria-label="edit" sx={{ mr: 1 }}>
+                    <IconButton 
+                      edge="end" 
+                      aria-label="edit" 
+                      sx={{ mr: 1 }}
+                      onClick={() => handleEditCandidate(candidate)}
+                    >
                       <EditIcon />
                     </IconButton>
-                    <IconButton edge="end" aria-label="delete">
+                    <IconButton 
+                      edge="end" 
+                      aria-label="delete"
+                      onClick={() => handleDeleteClick(candidate.id)}
+                    >
                       <DeleteIcon />
                     </IconButton>
                   </Box>
@@ -296,8 +358,15 @@ const Candidates: React.FC = () => {
         </Box>
       </Paper>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>Add New Candidate</DialogTitle>
+      <Dialog 
+        open={openDialog} 
+        onClose={handleCloseDialog} 
+        maxWidth="md" 
+        fullWidth
+      >
+        <DialogTitle>
+          {isEditMode ? 'Edit Candidate' : 'Add New Candidate'}
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
             <Grid container spacing={3}>
@@ -425,7 +494,31 @@ const Candidates: React.FC = () => {
             onClick={handleSubmit}
             disabled={!candidateData.name || !candidateData.party || !candidateData.voteNumber}
           >
-            Add Candidate
+            {isEditMode ? 'Update' : 'Add'} Candidate
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete this candidate? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions
+      sx={{p: 2}}
+        >
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button 
+            onClick={handleDeleteConfirm} 
+            color="error" 
+            variant="contained"
+          >
+            Delete
           </Button>
         </DialogActions>
       </Dialog>

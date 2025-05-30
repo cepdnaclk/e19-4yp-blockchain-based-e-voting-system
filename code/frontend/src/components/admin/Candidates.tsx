@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
+  Tabs,
+  Tab,
   Paper,
   Button,
   Dialog,
@@ -16,7 +18,11 @@ import {
   ListItemAvatar,
   Avatar,
   IconButton,
-  useTheme,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  CircularProgress,
   Chip,
 } from '@mui/material';
 import {
@@ -25,50 +31,103 @@ import {
   Delete as DeleteIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
+import { DatePicker } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 interface Candidate {
   id: string;
   name: string;
-  position: string;
-  description: string;
-  imageUrl?: string;
+  birthday: Date;
+  address: string;
+  mobileNumber: string;
+  email: string;
+  photo: string;
   party: string;
-  status: string;
+  voteNumber: string;
+  electionId?: string;
+  status: 'active' | 'inactive';
+}
+
+interface Party {
+  id: string;
+  name: string;
+}
+
+interface Election {
+  id: string;
+  name: string;
+  status: 'active' | 'pending' | 'completed';
 }
 
 const Candidates: React.FC = () => {
-  const theme = useTheme();
+  const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [candidateData, setCandidateData] = useState({
     name: '',
-    position: '',
-    description: '',
-    imageUrl: '',
+    birthday: new Date(),
+    address: '',
+    mobileNumber: '',
+    email: '',
+    photo: '',
     party: '',
-    status: '',
+    voteNumber: '',
+    electionId: '',
   });
 
+  // Simulate loading data
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Mock data - replace with actual data from your backend
+  const parties: Party[] = [
+    { id: '1', name: 'Party A' },
+    { id: '2', name: 'Party B' },
+    { id: '3', name: 'Party C' },
+  ];
+
+  const elections: Election[] = [
+    { id: '1', name: 'Election 1', status: 'active' },
+    { id: '2', name: 'Election 2', status: 'pending' },
+    { id: '3', name: 'Election 3', status: 'completed' },
+  ];
+
   const candidates: Candidate[] = [
     {
       id: '1',
       name: 'John Doe',
-      position: 'President',
-      description: 'Experienced leader with a vision for change',
-      imageUrl: 'https://i.pravatar.cc/150?img=1',
-      party: 'Democratic Party',
+      birthday: new Date('1990-01-01'),
+      address: '123 Main St',
+      mobileNumber: '1234567890',
+      email: 'john@example.com',
+      photo: '',
+      party: 'Party A',
+      voteNumber: '001',
+      electionId: '1',
       status: 'active',
     },
     {
       id: '2',
       name: 'Jane Smith',
-      position: 'Vice President',
-      description: 'Dedicated to student welfare and development',
-      imageUrl: 'https://i.pravatar.cc/150?img=2',
-      party: 'Republican Party',
+      birthday: new Date('1992-02-02'),
+      address: '456 Oak St',
+      mobileNumber: '0987654321',
+      email: 'jane@example.com',
+      photo: '',
+      party: 'Party B',
+      voteNumber: '002',
       status: 'inactive',
     },
   ];
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
 
   const handleCreateCandidate = () => {
     setOpenDialog(true);
@@ -78,11 +137,14 @@ const Candidates: React.FC = () => {
     setOpenDialog(false);
     setCandidateData({
       name: '',
-      position: '',
-      description: '',
-      imageUrl: '',
+      birthday: new Date(),
+      address: '',
+      mobileNumber: '',
+      email: '',
+      photo: '',
       party: '',
-      status: '',
+      voteNumber: '',
+      electionId: '',
     });
   };
 
@@ -92,15 +154,95 @@ const Candidates: React.FC = () => {
     handleCloseDialog();
   };
 
-  const handleEditCandidate = (candidate: Candidate) => {
-    // Implement edit candidate logic
-    console.log('Editing candidate:', candidate);
-  };
-
-  const handleDeleteCandidate = (id: string) => {
-    // Implement delete candidate logic
-    console.log('Deleting candidate:', id);
-  };
+  const CandidateList: React.FC<{ candidates: Candidate[] }> = ({ candidates }) => (
+    <List>
+      {isLoading ? (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            py: 8,
+          }}
+        >
+          <CircularProgress size={40} sx={{ mb: 2 }} />
+          <Typography variant="body2" color="text.secondary">
+            Loading candidates...
+          </Typography>
+        </Box>
+      ) : candidates.length === 0 ? (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            py: 8,
+            color: 'text.secondary',
+          }}
+        >
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            No Candidates Found
+          </Typography>
+          <Typography variant="body2">
+            There are no candidates in this category at the moment.
+          </Typography>
+        </Box>
+      ) : (
+        candidates.map((candidate) => (
+          <Paper
+            key={candidate.id}
+            elevation={1}
+            sx={{ mb: 2, p: 2 }}
+          >
+            <ListItem
+              secondaryAction={
+                candidate.status === 'inactive' && (
+                  <Box>
+                    <IconButton edge="end" aria-label="edit" sx={{ mr: 1 }}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton edge="end" aria-label="delete">
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                )
+              }
+            >
+              <ListItemAvatar>
+                <Avatar src={candidate.photo}>
+                  <PersonIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="h6">{candidate.name}</Typography>
+                    <Chip
+                      label={candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1)}
+                      size="small"
+                      color={candidate.status === 'active' ? 'success' : 'default'}
+                    />
+                  </Box>
+                }
+                secondary={
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Party: {candidate.party}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Vote Number: {candidate.voteNumber}
+                    </Typography>
+                  </Box>
+                }
+              />
+            </ListItem>
+          </Paper>
+        ))
+      )}
+    </List>
+  );
 
   return (
     <Box
@@ -113,81 +255,53 @@ const Candidates: React.FC = () => {
         p: 3,
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 600 }}>
-          Candidates
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'end', mb: 3 }}>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleCreateCandidate}
+          disabled={isLoading}
         >
           Add Candidate
         </Button>
       </Box>
 
-      <Paper sx={{ 
-        flexGrow: 1, 
-        display: 'flex', 
-        flexDirection: 'column',
-        overflow: 'hidden'
-      }}>
-        <List sx={{ flexGrow: 1, overflow: 'auto' }}>
-          {candidates.map((candidate) => (
-            <ListItem
-              key={candidate.id}
-              divider
-              secondaryAction={
-                <Box>
-                  <IconButton
-                    edge="end"
-                    aria-label="edit"
-                    onClick={() => handleEditCandidate(candidate)}
-                    sx={{ mr: 1 }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    edge="end"
-                    aria-label="delete"
-                    onClick={() => handleDeleteCandidate(candidate.id)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              }
-            >
-              <ListItemAvatar>
-                <Avatar src={candidate.imageUrl} alt={candidate.name}>
-                  {candidate.name.charAt(0)}
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText
-                primary={candidate.name}
-                secondary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {candidate.party}
-                    </Typography>
-                    <Chip
-                      label={candidate.status}
-                      size="small"
-                      color={candidate.status === 'active' ? 'success' : 'default'}
-                    />
-                  </Box>
-                }
-              />
-            </ListItem>
-          ))}
-        </List>
+      <Paper sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          sx={{
+            borderBottom: 1,
+            borderColor: 'divider',
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              fontWeight: 500,
+            },
+          }}
+        >
+          <Tab label="Active Candidates" />
+          <Tab label="Inactive Candidates" />
+        </Tabs>
+        <Box sx={{ p: 3, flexGrow: 1, overflow: 'auto' }}>
+          {tabValue === 0 && (
+            <CandidateList
+              candidates={candidates.filter((c) => c.status === 'active')}
+            />
+          )}
+          {tabValue === 1 && (
+            <CandidateList
+              candidates={candidates.filter((c) => c.status === 'inactive')}
+            />
+          )}
+        </Box>
       </Paper>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>Add New Candidate</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
                   label="Candidate Name"
@@ -197,58 +311,109 @@ const Candidates: React.FC = () => {
                   }
                 />
               </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Position"
-                  value={candidateData.position}
-                  onChange={(e) =>
-                    setCandidateData({ ...candidateData, position: e.target.value })
-                  }
-                />
+              <Grid item xs={12} md={6}>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DatePicker
+                    label="Birthday"
+                    value={candidateData.birthday}
+                    onChange={(date: Date | null) =>
+                      setCandidateData({ ...candidateData, birthday: date || new Date() })
+                    }
+                    slotProps={{ textField: { fullWidth: true } }}
+                  />
+                </LocalizationProvider>
               </Grid>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Description"
-                  multiline
-                  rows={4}
-                  value={candidateData.description}
+                  label="Address"
+                  value={candidateData.address}
                   onChange={(e) =>
-                    setCandidateData({ ...candidateData, description: e.target.value })
+                    setCandidateData({ ...candidateData, address: e.target.value })
                   }
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Image URL"
-                  value={candidateData.imageUrl}
+                  label="Mobile Number"
+                  value={candidateData.mobileNumber}
                   onChange={(e) =>
-                    setCandidateData({ ...candidateData, imageUrl: e.target.value })
-                  }
-                  helperText="Optional: URL for candidate's profile picture"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Party"
-                  value={candidateData.party}
-                  onChange={(e) =>
-                    setCandidateData({ ...candidateData, party: e.target.value })
+                    setCandidateData({ ...candidateData, mobileNumber: e.target.value })
                   }
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Status"
-                  value={candidateData.status}
+                  label="Email"
+                  type="email"
+                  value={candidateData.email}
                   onChange={(e) =>
-                    setCandidateData({ ...candidateData, status: e.target.value })
+                    setCandidateData({ ...candidateData, email: e.target.value })
                   }
                 />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Photo URL"
+                  value={candidateData.photo}
+                  onChange={(e) =>
+                    setCandidateData({ ...candidateData, photo: e.target.value })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Party</InputLabel>
+                  <Select
+                    value={candidateData.party}
+                    label="Party"
+                    onChange={(e) =>
+                      setCandidateData({ ...candidateData, party: e.target.value })
+                    }
+                  >
+                    {parties.map((party) => (
+                      <MenuItem key={party.id} value={party.name}>
+                        {party.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Vote Number"
+                  value={candidateData.voteNumber}
+                  onChange={(e) =>
+                    setCandidateData({ ...candidateData, voteNumber: e.target.value })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Attach to Election (Optional)</InputLabel>
+                  <Select
+                    value={candidateData.electionId}
+                    label="Attach to Election (Optional)"
+                    onChange={(e) =>
+                      setCandidateData({ ...candidateData, electionId: e.target.value })
+                    }
+                  >
+                    <MenuItem value="">
+                      <em>None</em>
+                    </MenuItem>
+                    {elections
+                      .filter((e) => e.status !== 'active')
+                      .map((election) => (
+                        <MenuItem key={election.id} value={election.id}>
+                          {election.name}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
               </Grid>
             </Grid>
           </Box>
@@ -258,7 +423,7 @@ const Candidates: React.FC = () => {
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={!candidateData.name || !candidateData.position}
+            disabled={!candidateData.name || !candidateData.party || !candidateData.voteNumber}
           >
             Add Candidate
           </Button>

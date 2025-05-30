@@ -133,7 +133,7 @@ const Overview: React.FC = () => {
         <Grid item xs={12} md={4}>
           <StatCard
             title="System Status"
-            value="Online"
+            value={stats.systemStatus}
             status={stats.systemStatus}
             icon={<CheckCircleIcon sx={{ color: theme.palette.success.main }} />}
             color={theme.palette.success.main}

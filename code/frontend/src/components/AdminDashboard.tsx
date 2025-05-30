@@ -27,10 +27,12 @@ import {
   Logout as LogoutIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  Groups as PartyIcon,
 } from '@mui/icons-material';
 import Overview from './admin/Overview';
 import Elections from './admin/Elections';
 import Candidates from './admin/Candidates';
+import Parties from './admin/Parties';
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 80;
@@ -53,6 +55,7 @@ const AdminDashboard: React.FC = () => {
     { id: 'overview', text: 'Overview', icon: <DashboardIcon /> },
     { id: 'elections', text: 'Elections', icon: <ElectionIcon /> },
     { id: 'candidates', text: 'Candidates', icon: <CandidateIcon /> },
+    { id: 'parties', text: 'Parties', icon: <PartyIcon /> },
   ];
 
   const drawer = (
@@ -208,6 +211,8 @@ const AdminDashboard: React.FC = () => {
         return <Elections />;
       case 'candidates':
         return <Candidates />;
+      case 'parties':
+        return <Parties />;
       default:
         return <Overview />;
     }

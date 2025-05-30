@@ -30,7 +30,12 @@ import {
   Delete as DeleteIcon,
   ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { 
+  DateTimePicker,
+  DatePicker,
+  TimePicker,
+  MobileTimePicker,
+} from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import {
@@ -72,7 +77,9 @@ const Elections: React.FC = () => {
   const [electionData, setElectionData] = useState({
     name: '',
     startDate: new Date(),
+    startTime: new Date(),
     endDate: new Date(),
+    endTime: new Date(),
   });
 
   // Simulate loading data
@@ -145,13 +152,36 @@ const Elections: React.FC = () => {
     setElectionData({
       name: '',
       startDate: new Date(),
+      startTime: new Date(),
       endDate: new Date(),
+      endTime: new Date(),
     });
   };
 
   const handleSubmit = () => {
+    // Combine date and time for start and end
+    const startDateTime = new Date(
+      electionData.startDate.getFullYear(),
+      electionData.startDate.getMonth(),
+      electionData.startDate.getDate(),
+      electionData.startTime.getHours(),
+      electionData.startTime.getMinutes()
+    );
+
+    const endDateTime = new Date(
+      electionData.endDate.getFullYear(),
+      electionData.endDate.getMonth(),
+      electionData.endDate.getDate(),
+      electionData.endTime.getHours(),
+      electionData.endTime.getMinutes()
+    );
+
     // TODO: Implement election creation logic
-    console.log('Creating election:', electionData);
+    console.log('Creating election:', {
+      name: electionData.name,
+      startDate: startDateTime,
+      endDate: endDateTime,
+    });
     handleCloseDialog();
   };
 
@@ -472,27 +502,67 @@ const Elections: React.FC = () => {
                   }
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DateTimePicker
-                    label="Start Date & Time"
-                    value={electionData.startDate}
-                    onChange={(date: Date | null) =>
-                      setElectionData({ ...electionData, startDate: date || new Date() })
-                    }
-                  />
-                </LocalizationProvider>
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
+                  Start Date & Time
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                      <DatePicker
+                        label="Start Date"
+                        value={electionData.startDate}
+                        onChange={(date: Date | null) =>
+                          setElectionData({ ...electionData, startDate: date || new Date() })
+                        }
+                        slotProps={{ textField: { fullWidth: true } }}
+                      />
+                    </LocalizationProvider>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                      <MobileTimePicker
+                        label="Start Time"
+                        value={electionData.startTime}
+                        onChange={(time: Date | null) =>
+                          setElectionData({ ...electionData, startTime: time || new Date() })
+                        }
+                        slotProps={{ textField: { fullWidth: true } }}
+                      />
+                    </LocalizationProvider>
+                  </Grid>
+                </Grid>
               </Grid>
-              <Grid item xs={12} md={6}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DateTimePicker
-                    label="End Date & Time"
-                    value={electionData.endDate}
-                    onChange={(date: Date | null) =>
-                      setElectionData({ ...electionData, endDate: date || new Date() })
-                    }
-                  />
-                </LocalizationProvider>
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
+                  End Date & Time
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                      <DatePicker
+                        label="End Date"
+                        value={electionData.endDate}
+                        onChange={(date: Date | null) =>
+                          setElectionData({ ...electionData, endDate: date || new Date() })
+                        }
+                        slotProps={{ textField: { fullWidth: true } }}
+                      />
+                    </LocalizationProvider>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                      <MobileTimePicker
+                        label="End Time"
+                        value={electionData.endTime}
+                        onChange={(time: Date | null) =>
+                          setElectionData({ ...electionData, endTime: time || new Date() })
+                        }
+                        slotProps={{ textField: { fullWidth: true } }}
+                      />
+                    </LocalizationProvider>
+                  </Grid>
+                </Grid>
               </Grid>
             </Grid>
           </Box>

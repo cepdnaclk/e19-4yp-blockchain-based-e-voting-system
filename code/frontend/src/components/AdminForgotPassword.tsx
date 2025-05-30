@@ -11,7 +11,7 @@ import {
   useTheme,
 } from '@mui/material';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import Navigation from './Navigation';
+import AdminNavigation from './AdminNavigation';
 
 const AdminForgotPassword: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -63,7 +63,7 @@ const AdminForgotPassword: React.FC = () => {
         },
       }}
     >
-      <Navigation />
+      <AdminNavigation />
       <Container 
         component="main" 
         maxWidth={false}

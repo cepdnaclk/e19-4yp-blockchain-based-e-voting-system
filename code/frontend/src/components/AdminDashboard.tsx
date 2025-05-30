@@ -66,6 +66,7 @@ const AdminDashboard: React.FC = () => {
           bgcolor: theme.palette.primary.main,
           color: 'white',
           position: 'relative',
+          minHeight: !isCollapsed ? 80 : 60,
         }}
       >
         {!isCollapsed && (
@@ -219,6 +220,7 @@ const AdminDashboard: React.FC = () => {
         sx={{
           width: { sm: `calc(100% - ${isCollapsed ? collapsedDrawerWidth : drawerWidth}px)` },
           ml: { sm: `${isCollapsed ? collapsedDrawerWidth : drawerWidth}px` },
+          minHeight: !isCollapsed ? 80 : 60,
           bgcolor: 'white',
           color: 'text.primary',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',

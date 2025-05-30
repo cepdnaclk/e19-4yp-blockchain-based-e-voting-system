@@ -8,6 +8,7 @@ import {
   useTheme,
   Chip,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   People as PeopleIcon,
   HowToVote as VoteIcon,

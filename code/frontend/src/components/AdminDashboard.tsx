@@ -41,6 +41,7 @@ const AdminDashboard: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState('overview');
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(3);
   const theme = useTheme();
 
   const handleDrawerToggle = () => {

@@ -244,7 +244,7 @@ const AdminDashboard: React.FC = () => {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 600 }}>
-              {menuItems.find(item => item.id === selectedTab)?.text}
+              {menuItems.find(item => item.id === selectedTab)?.text === "Overview" ? "Dashboard Overview" : menuItems.find(item => item.id === selectedTab)?.text + " Overview"}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

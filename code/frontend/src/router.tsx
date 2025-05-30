@@ -4,15 +4,13 @@ import UserLogin from './components/UserLogin';
 import AdminLogin from './components/AdminLogin';
 import AdminOTP from './components/AdminOTP';
 import Layout from './components/Layout';
+import AdminDashboard from './components/AdminDashboard';
 
 // Placeholder components for dashboards
 const UserDashboard: React.FC = () => (
   <div>User Dashboard (Coming Soon)</div>
 );
 
-const AdminDashboard: React.FC = () => (
-  <div>Admin Dashboard (Coming Soon)</div>
-);
 
 const router = createBrowserRouter([
   {

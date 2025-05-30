@@ -66,7 +66,7 @@ const AdminDashboard: React.FC = () => {
           bgcolor: theme.palette.primary.main,
           color: 'white',
           position: 'relative',
-          minHeight: !isCollapsed ? 80 : 60,
+          minHeight: !isCollapsed ? 80 : 70,
         }}
       >
         {!isCollapsed && (
@@ -203,7 +203,7 @@ const AdminDashboard: React.FC = () => {
   const renderContent = () => {
     switch (selectedTab) {
       case 'overview':
-        return <Overview />;
+        return <Overview/>;
       case 'elections':
         return <Elections />;
       case 'candidates':
@@ -214,13 +214,13 @@ const AdminDashboard: React.FC = () => {
   };
   
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f5f5f5' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f5f5f5', minWidth: '100vw'}}>
       <AppBar
         position="fixed"
         sx={{
           width: { sm: `calc(100% - ${isCollapsed ? collapsedDrawerWidth : drawerWidth}px)` },
           ml: { sm: `${isCollapsed ? collapsedDrawerWidth : drawerWidth}px` },
-          minHeight: !isCollapsed ? 80 : 60,
+          minHeight: !isCollapsed ? 80 : 70,
           bgcolor: 'white',
           color: 'text.primary',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
@@ -233,7 +233,7 @@ const AdminDashboard: React.FC = () => {
       >
         <Toolbar sx={{ justifyContent: 'space-between'
         }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center'}}>
             <IconButton
               color="inherit"
               aria-label="open drawer"
@@ -312,9 +312,7 @@ const AdminDashboard: React.FC = () => {
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - ${isCollapsed ? collapsedDrawerWidth : drawerWidth}px)` },
           minHeight: '100vh',
-          marginLeft: { sm: `${isCollapsed ? collapsedDrawerWidth : drawerWidth}px` },
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
@@ -323,7 +321,6 @@ const AdminDashboard: React.FC = () => {
           flexDirection: 'column',
         }}
       >
-        <Toolbar />
         <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
           {renderContent()}
         </Box>

@@ -129,9 +129,6 @@ const Overview: React.FC = () => {
         justifyContent: 'flex-start',
       }}
     >
-      <Typography variant="h4" sx={{ mb: 4, fontWeight: 600 }}>
-        Dashboard Overview
-      </Typography>
       <Grid container spacing={3} sx={{ width: '100%' }}>
         <Grid item xs={12} md={4}>
           <StatCard

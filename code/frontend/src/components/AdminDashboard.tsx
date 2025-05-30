@@ -54,8 +54,8 @@ const AdminDashboard: React.FC = () => {
   const menuItems = [
     { id: 'overview', text: 'Overview', icon: <DashboardIcon /> },
     { id: 'elections', text: 'Elections', icon: <ElectionIcon /> },
-    { id: 'candidates', text: 'Candidates', icon: <CandidateIcon /> },
     { id: 'parties', text: 'Parties', icon: <PartyIcon /> },
+    { id: 'candidates', text: 'Candidates', icon: <CandidateIcon /> },
   ];
 
   const drawer = (

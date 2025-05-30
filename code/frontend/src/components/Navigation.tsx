@@ -17,7 +17,9 @@ const Navigation: React.FC = () => {
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           Blockchain E-Voting System
         </Typography>
-        <Box>
+        <Box
+        >
+            
           {!isHomePage && (
             <Button
               color="inherit"

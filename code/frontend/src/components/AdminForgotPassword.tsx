@@ -134,10 +134,10 @@ const AdminForgotPassword: React.FC = () => {
             Reset Password
           </Typography>
           <Typography 
-            variant="h6" 
+            variant="body2"
             color="text.secondary" 
             align="center" 
-            sx={{ mb: 4 }}
+            sx={{ mb: 4, fontSize: '0.875rem' }}
           >
             Enter your admin username and email to reset your password
           </Typography>

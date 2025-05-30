@@ -428,10 +428,7 @@ const Elections: React.FC = () => {
     >
       {!selectedElection ? (
         <>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-            <Typography variant="h4" sx={{ fontWeight: 600 }}>
-              Elections
-            </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'end', mb: 3 }}>
             <Button
               variant="contained"
               startIcon={<AddIcon />}

@@ -9,16 +9,6 @@ import UserDashboard from "./components/UserDashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminForgotPassword from './components/AdminForgotPassword';
 
-// // Placeholder components for dashboards
-// const UserDashboard: React.FC = () => (
-//   <div>User Dashboard (Coming Soon)</div>
-// );
-
-// const AdminDashboard: React.FC = () => (
-//   <div>Admin Dashboard (Coming Soon)</div>
-// );
-
-
 const router = createBrowserRouter([
   {
     path: "/",

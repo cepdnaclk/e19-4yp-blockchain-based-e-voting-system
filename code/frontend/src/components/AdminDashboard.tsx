@@ -261,7 +261,7 @@ const AdminDashboard: React.FC = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Tooltip title="Notifications">
               <IconButton>
-                <Badge badgeContent={3} color="error">
+                <Badge badgeContent={notificationCount} color="error">
                   <NotificationsIcon />
                 </Badge>
               </IconButton>

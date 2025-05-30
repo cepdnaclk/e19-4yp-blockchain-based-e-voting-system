@@ -75,6 +75,62 @@ const mockCandidates = [
       "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop",
     position: "Presidential Candidate",
   },
+  {
+    id: 6,
+    name: "Maria Rodriguez",
+    party: "Socialist Party",
+    image:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop",
+    position: "Presidential Candidate",
+  },
+  {
+    id: 7,
+    name: "James Wilson",
+    party: "Libertarian Party",
+    image:
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop",
+    position: "Presidential Candidate",
+  },
+  {
+    id: 8,
+    name: "Emily Chen",
+    party: "Conservative Party",
+    image:
+      "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=150&h=150&fit=crop",
+    position: "Presidential Candidate",
+  },
+  {
+    id: 9,
+    name: "Robert Taylor",
+    party: "Liberal Party",
+    image:
+      "https://images.unsplash.com/photo-1506795660198-e95c6320215d?w=150&h=150&fit=crop",
+    position: "Presidential Candidate",
+  },
+  {
+    id: 10,
+    name: "Sophia Patel",
+    party: "Centrist Party",
+    image:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop",
+    position: "Presidential Candidate",
+  },
+  {
+    id: 11,
+    name: "Michael Brown",
+    party: "Reform Party",
+    image:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop",
+    position: "Presidential Candidate",
+  },
+  {
+    id: 12,
+    name: "Lisa Anderson",
+    party: "Unity Party",
+    image:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
+    position: "Presidential Candidate",
+  },
 ];
 
 const UserDashboard: React.FC = () => {
@@ -342,8 +398,21 @@ const UserDashboard: React.FC = () => {
                   </Box>
                 </Zoom>
               ) : (
-                <Box sx={{ display: "flex", gap: 3 }}>
-                  <Box sx={{ flex: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 3,
+                    height: "calc(100vh - 200px)",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      overflow: "hidden",
+                    }}
+                  >
                     <Typography
                       variant="subtitle1"
                       sx={{
@@ -354,83 +423,107 @@ const UserDashboard: React.FC = () => {
                     >
                       Select a Candidate
                     </Typography>
-                    <Grid container spacing={1.5}>
-                      {mockCandidates.map((candidate, index) => (
-                        <Grid item xs={12} key={candidate.id}>
-                          <Fade
-                            in
-                            timeout={300}
-                            style={{ transitionDelay: `${index * 100}ms` }}
-                          >
-                            <Card
-                              sx={{
-                                borderRadius: 2,
-                                transition: "all 0.3s ease",
-                                border:
-                                  selectedCandidate === candidate.id
-                                    ? `2px solid ${theme.palette.primary.main}`
-                                    : "1px solid",
-                                borderColor:
-                                  selectedCandidate === candidate.id
-                                    ? theme.palette.primary.main
-                                    : "divider",
-                                "&:hover": {
-                                  transform: "translateY(-2px)",
-                                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
-                                },
-                              }}
+                    <Box
+                      sx={{
+                        flex: 1,
+                        overflowY: "auto",
+                        pr: 1,
+                        "&::-webkit-scrollbar": {
+                          width: "8px",
+                        },
+                        "&::-webkit-scrollbar-track": {
+                          background: "rgba(0, 0, 0, 0.05)",
+                          borderRadius: "4px",
+                        },
+                        "&::-webkit-scrollbar-thumb": {
+                          background: "rgba(0, 0, 0, 0.2)",
+                          borderRadius: "4px",
+                          "&:hover": {
+                            background: "rgba(0, 0, 0, 0.3)",
+                          },
+                        },
+                      }}
+                    >
+                      <Grid container spacing={1.5}>
+                        {mockCandidates.map((candidate, index) => (
+                          <Grid item xs={12} key={candidate.id}>
+                            <Fade
+                              in
+                              timeout={300}
+                              style={{ transitionDelay: `${index * 100}ms` }}
                             >
-                              <CardContent sx={{ p: 1.5 }}>
-                                <Box
-                                  sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 2,
-                                  }}
-                                >
-                                  <Avatar
-                                    src={candidate.image}
-                                    sx={{ width: 48, height: 48 }}
-                                  />
-                                  <Box sx={{ flex: 1 }}>
-                                    <Typography
-                                      variant="subtitle1"
-                                      component="div"
-                                    >
-                                      {candidate.name}
-                                    </Typography>
-                                    <Typography
-                                      variant="body2"
-                                      color="text.secondary"
-                                    >
-                                      {candidate.party}
-                                    </Typography>
-                                    <Typography
-                                      variant="caption"
-                                      color="text.secondary"
-                                    >
-                                      {candidate.position}
-                                    </Typography>
-                                  </Box>
-                                  <Radio
-                                    checked={selectedCandidate === candidate.id}
-                                    onChange={() =>
-                                      setSelectedCandidate(candidate.id)
-                                    }
+                              <Card
+                                sx={{
+                                  borderRadius: 2,
+                                  transition: "all 0.3s ease",
+                                  border:
+                                    selectedCandidate === candidate.id
+                                      ? `2px solid ${theme.palette.primary.main}`
+                                      : "1px solid",
+                                  borderColor:
+                                    selectedCandidate === candidate.id
+                                      ? theme.palette.primary.main
+                                      : "divider",
+                                  "&:hover": {
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+                                  },
+                                }}
+                              >
+                                <CardContent sx={{ p: 1.5 }}>
+                                  <Box
                                     sx={{
-                                      color: theme.palette.primary.main,
-                                      "&.Mui-checked": {
-                                        color: theme.palette.primary.main,
-                                      },
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 2,
                                     }}
-                                  />
-                                </Box>
-                              </CardContent>
-                            </Card>
-                          </Fade>
-                        </Grid>
-                      ))}
-                    </Grid>
+                                  >
+                                    <Avatar
+                                      src={candidate.image}
+                                      sx={{ width: 48, height: 48 }}
+                                    />
+                                    <Box sx={{ flex: 1 }}>
+                                      <Typography
+                                        variant="subtitle1"
+                                        component="div"
+                                      >
+                                        {candidate.name}
+                                      </Typography>
+                                      <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                      >
+                                        {candidate.party}
+                                      </Typography>
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                      >
+                                        {candidate.position}
+                                      </Typography>
+                                    </Box>
+                                    <Radio
+                                      checked={
+                                        selectedCandidate === candidate.id
+                                      }
+                                      onChange={() =>
+                                        setSelectedCandidate(candidate.id)
+                                      }
+                                      sx={{
+                                        color: theme.palette.primary.main,
+                                        "&.Mui-checked": {
+                                          color: theme.palette.primary.main,
+                                        },
+                                      }}
+                                    />
+                                  </Box>
+                                </CardContent>
+                              </Card>
+                            </Fade>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Box>
                   </Box>
 
                   <Box
@@ -445,6 +538,12 @@ const UserDashboard: React.FC = () => {
                       borderRadius: 2,
                       background: "rgba(255, 255, 255, 0.5)",
                       backdropFilter: "blur(10px)",
+                      height: "fit-content",
+                      alignSelf: "center",
+                      position: "sticky",
+                      top: "60%",
+                      transform: "translateY(-50%)",
+                      mt: 4,
                     }}
                   >
                     <Typography

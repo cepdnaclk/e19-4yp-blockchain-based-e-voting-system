@@ -94,23 +94,26 @@ const AdminDashboard: React.FC = () => {
             </Box>
           </>
         )}
-        <IconButton
-          onClick={handleCollapseToggle}
-          sx={{
-            position: 'absolute',
-            right: 10 ,
-            transform: !isCollapsed ? 'translateX(0)' : 'translateX(-50%)',
-            bgcolor: 'white',
-            boxShadow: 1,
-            '&:hover': {
-              bgcolor: 'grey.100',
-            },
-            width: 30,
-            height: 30,
-          }}
-        >
-          {isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-        </IconButton>
+        <Tooltip title={isCollapsed ? "Expand navigation" : "Collapse navigation"}>
+          <IconButton
+            onClick={handleCollapseToggle}
+            aria-label={isCollapsed ? "Expand navigation" : "Collapse navigation"}
+            sx={{
+              position: 'absolute',
+              right: 10 ,
+              transform: !isCollapsed ? 'translateX(0)' : 'translateX(-50%)',
+              bgcolor: 'white',
+              boxShadow: 1,
+              '&:hover': {
+                bgcolor: 'grey.100',
+              },
+              width: 30,
+              height: 30,
+            }}
+          >
+            {isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+          </IconButton>
+        </Tooltip>
       </Box>
       <Divider />
       <List sx={{ flexGrow: 1, px: 2, py: 1 }}>

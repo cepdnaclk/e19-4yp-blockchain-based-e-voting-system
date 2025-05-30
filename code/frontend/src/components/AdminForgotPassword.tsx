@@ -11,7 +11,7 @@ import {
   useTheme,
 } from '@mui/material';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import Navigation from './Navigation';
+import AdminNavigation from './AdminNavigation';
 
 const AdminForgotPassword: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -63,7 +63,7 @@ const AdminForgotPassword: React.FC = () => {
         },
       }}
     >
-      <Navigation />
+      <AdminNavigation />
       <Container 
         component="main" 
         maxWidth={false}
@@ -134,10 +134,10 @@ const AdminForgotPassword: React.FC = () => {
             Reset Password
           </Typography>
           <Typography 
-            variant="h6" 
+            variant="body2"
             color="text.secondary" 
             align="center" 
-            sx={{ mb: 4 }}
+            sx={{ mb: 4, fontSize: '0.875rem' }}
           >
             Enter your admin username and email to reset your password
           </Typography>

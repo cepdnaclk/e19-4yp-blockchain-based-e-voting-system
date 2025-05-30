@@ -3,32 +3,40 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   Box,
   Button,
-  Checkbox,
   Container,
-  FormControlLabel,
   TextField,
   Typography,
   Paper,
+  Alert,
   useTheme,
 } from '@mui/material';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import Navigation from './Navigation';
 
-const AdminLogin: React.FC = () => {
+const AdminForgotPassword: React.FC = () => {
   const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const navigate = useNavigate();
   const theme = useTheme();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement admin login logic
-    navigate('/admin/otp');
-  };
-
-  const handleForgotPassword = () => {
-    // TODO: Implement forgot password logic
+    try {
+      // TODO: Implement the actual password reset API call here
+      // For now, just show a success message
+      setMessage({
+        type: 'success',
+        text: 'If the provided username and email match our records, you will receive password reset instructions.'
+      });
+      setUsername('');
+      setEmail('');
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: 'An error occurred. Please try again later.'
+      });
+    }
   };
 
   return (
@@ -123,9 +131,22 @@ const AdminLogin: React.FC = () => {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            Admin Login
+            Reset Password
+          </Typography>
+          <Typography 
+            variant="h6" 
+            color="text.secondary" 
+            align="center" 
+            sx={{ mb: 4 }}
+          >
+            Enter your admin username and email to reset your password
           </Typography>
           <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+            {message && (
+              <Alert severity={message.type} sx={{ mb: 2 }}>
+                {message.text}
+              </Alert>
+            )}
             <TextField
               margin="normal"
               required
@@ -156,13 +177,12 @@ const AdminLogin: React.FC = () => {
               margin="normal"
               required
               fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   '&:hover fieldset': {
@@ -178,23 +198,10 @@ const AdminLogin: React.FC = () => {
                 },
               }}
             />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  value="remember"
-                  color="primary"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-              }
-              label="Remember me"
-              sx={{ mt: 1 }}
-            />
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              color="primary"
               size="large"
               sx={{
                 mt: 4,
@@ -210,11 +217,11 @@ const AdminLogin: React.FC = () => {
                 },
               }}
             >
-              Login
+              Reset Password
             </Button>
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+            <Box sx={{ textAlign: 'center' }}>
               <Link
-                to="/admin/forgot-password"
+                to="/admin/login"
                 style={{ textDecoration: 'none' }}
               >
                 <Typography
@@ -226,7 +233,7 @@ const AdminLogin: React.FC = () => {
                     },
                   }}
                 >
-                  Forgot Password?
+                  Back to Login
                 </Typography>
               </Link>
             </Box>
@@ -237,4 +244,4 @@ const AdminLogin: React.FC = () => {
   );
 };
 
-export default AdminLogin; 
+export default AdminForgotPassword; 

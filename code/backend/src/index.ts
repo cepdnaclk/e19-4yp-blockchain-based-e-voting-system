@@ -27,7 +27,7 @@ app.use((req, res, next) => {
 app.use("/api/admin/register", registerRouter);
 
 // Login routes
-app.use("/api", loginRoutes);
+app.use("/api/admin", loginRoutes);
 
 // Voting router
 app.use("/api/votes", voteRoutes);

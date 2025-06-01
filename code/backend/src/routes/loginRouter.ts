@@ -2,19 +2,6 @@ import express, { Router } from "express";
 
 const router: Router = express.Router();
 
-// Error handling middleware for login
-router.use(
-  (
-    err: Error,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error(err.stack);
-    res.status(500).json({ error: "Something went wrong!" });
-  }
-);
-
 // Login route
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
@@ -27,9 +14,17 @@ router.post("/login", (req, res) => {
   }
 });
 
-// Test route for login
-router.get("/login-test", (req, res) => {
-  res.status(200).json({ message: "Login route is working" });
-});
+// Error handling middleware for login
+router.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error(err.stack);
+    res.status(500).json({ error: "Something went wrong!" });
+  }
+);
 
 export default router;

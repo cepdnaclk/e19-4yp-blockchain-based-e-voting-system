@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
 import { dbQuery } from "./dbService";
 
+const jwt = require("jsonwebtoken");
+
 export const hashPassword = async (password: string): Promise<string> => {
   const salt = await bcrypt.genSalt();
   const hashedPassword = await bcrypt.hash(password, salt);
@@ -24,4 +26,26 @@ export const validatePasswrd = async (
 ): Promise<boolean> => {
   const isPasswordMatch = await bcrypt.compare(password, hashedPassword);
   return isPasswordMatch;
+};
+
+export const generateAccessToken = (username: string): string => {
+  const accessToken = jwt.sign(
+    { username },
+    process.env.JWT_ACCESS_SECRET as string,
+    {
+      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN?.toString() || "15m",
+    }
+  );
+  return accessToken.toString();
+};
+
+export const generateRefreshToken = (username: string): string => {
+  const refreshToken = jwt.sign(
+    { username },
+    process.env.JWT_REFRESH_SECRET as string,
+    {
+      expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN?.toString() || "30d",
+    }
+  );
+  return refreshToken.toString();
 };

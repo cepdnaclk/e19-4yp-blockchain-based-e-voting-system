@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import { validatePasswrd } from "../services/authService";
+import { validatePasswrd, generateAccessToken } from "../services/authService";
 import { dbQuery } from "../services/dbService";
 
 const router: Router = express.Router();
@@ -26,7 +26,21 @@ router.post("/login", async (req, res) => {
 
   const isPasswordMatch = await validatePasswrd(password, user[0].password);
   if (isPasswordMatch) {
-    res.status(200).json({ message: "Authenticated", userName: username });
+    const acesssToken = generateAccessToken(username);
+    const refreshToken = generateAccessToken(username);
+    res
+      .status(200)
+      .json({
+        message: "Authenticated",
+        userName: username,
+        acesssToken: acesssToken,
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: "strict",
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days);
+      });
   } else {
     res
       .status(200)

@@ -17,3 +17,11 @@ export const validateUserName = async (username: string): Promise<boolean> => {
 
   return isDuplicate;
 };
+
+export const validatePasswrd = async (
+  password: string,
+  hashedPassword: string
+): Promise<boolean> => {
+  const isPasswordMatch = await bcrypt.compare(password, hashedPassword);
+  return isPasswordMatch;
+};

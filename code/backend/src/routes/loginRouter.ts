@@ -1,5 +1,9 @@
 import express, { Router } from "express";
-import { validatePasswrd, generateAccessToken } from "../services/authService";
+import {
+  validatePasswrd,
+  generateAccessToken,
+  generateRefreshToken,
+} from "../services/authService";
 import { dbQuery } from "../services/dbService";
 
 const router: Router = express.Router();
@@ -27,20 +31,31 @@ router.post("/login", async (req, res) => {
   const isPasswordMatch = await validatePasswrd(password, user[0].password);
   if (isPasswordMatch) {
     const acesssToken = generateAccessToken(username);
-    const refreshToken = generateAccessToken(username);
-    res
-      .status(200)
-      .json({
-        message: "Authenticated",
-        userName: username,
-        acesssToken: acesssToken,
-      })
-      .cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-        sameSite: "strict",
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days);
-      });
+    const refreshToken = generateRefreshToken(username);
+
+    // Add refresh token to db
+    const query =
+      "UPDATE admin_data SET refresh_token = $1 WHERE user_name = $2";
+    const param = [refreshToken, username];
+
+    try {
+      const response = await dbQuery({ query: query, params: param });
+      res
+        .status(200)
+        .cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+          sameSite: "strict",
+          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days);
+        })
+        .json({
+          message: "Authenticated",
+          userName: username,
+          acesssToken: acesssToken,
+        });
+    } catch {
+      res.status(500).json({ message: "Internal Server Error" });
+    }
   } else {
     res
       .status(200)

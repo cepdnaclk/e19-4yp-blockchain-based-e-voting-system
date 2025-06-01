@@ -1,5 +1,8 @@
 import bcrypt from "bcrypt";
 import { dbQuery } from "./dbService";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const jwt = require("jsonwebtoken");
 
@@ -29,23 +32,15 @@ export const validatePasswrd = async (
 };
 
 export const generateAccessToken = (username: string): string => {
-  const accessToken = jwt.sign(
-    { username },
-    process.env.JWT_ACCESS_SECRET as string,
-    {
-      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN?.toString() || "15m",
-    }
-  );
+  const accessToken = jwt.sign({ username }, process.env.JWT_ACCESS_SECRET, {
+    expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN?.toString() || "15m",
+  });
   return accessToken.toString();
 };
 
 export const generateRefreshToken = (username: string): string => {
-  const refreshToken = jwt.sign(
-    { username },
-    process.env.JWT_REFRESH_SECRET as string,
-    {
-      expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN?.toString() || "30d",
-    }
-  );
+  const refreshToken = jwt.sign({ username }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN?.toString() || "30d",
+  });
   return refreshToken.toString();
 };

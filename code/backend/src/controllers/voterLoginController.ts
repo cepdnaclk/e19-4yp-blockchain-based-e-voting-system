@@ -30,12 +30,12 @@ export const voterLogin = async (req: Request, res: Response) => {
 };
 
 export const registerVoter = async (req: Request, res: Response) => {
-  const { name, email, password, secretKey } = req.body;
+  const { voter_id ,name, email, password, secretKey } = req.body;
   const hashedSecretKey = await bcrypt.hash(secretKey, 10);
   // ...hash password as well if needed
   await dbQuery({
-    query: `INSERT INTO voters (name, email, password, secret_key_hash) VALUES ($1, $2, $3, $4)`,
-    params: [name, email, password, hashedSecretKey],
+    query: `INSERT INTO voters (voter_id, name, email, password, secret_key_hash) VALUES ($1, $2, $3, $4, $5)`,
+    params: [voter_id, name, email, password, hashedSecretKey],
   });
   res.status(201).json({ message: 'Voter registered' });
 }; 

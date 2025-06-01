@@ -7,13 +7,6 @@ const pool = new Pool({
   port: 5432,
 });
 
-console.log({
-  user: process.env.DB_USER,
-  password: typeof process.env.DB_PASSWORD,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-});
-
 module.exports = {
   query: (text, params) => pool.query(text, params),
 };

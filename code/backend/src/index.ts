@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import voteRoutes from "./routes/voteRoutes";
 import loginRoutes from "./routes/loginRouter";
+import registerRouter from "./routes/registerRouter";
 
 dotenv.config();
 
@@ -22,27 +23,14 @@ app.use((req, res, next) => {
 
 // Routes
 
+// Register routes
+app.use("/api/admin/register", registerRouter);
+
 // Login routes
-app.use("/api", loginRoutes);
+app.use("/api/admin", loginRoutes);
 
 // Voting router
 app.use("/api/votes", voteRoutes);
-
-// Database connection test
-app.get("/api/test-db", async (req, res) => {
-  try {
-    const result = await db.query(
-      "INSERT INTO admin_data (user_name, password) VALUES ($1, $2) RETURNING *",
-      ["testUser", "testPassword"]
-    );
-    res
-      .status(200)
-      .json({ message: "Database connection successful", result: result.rows });
-  } catch (error) {
-    console.error("Database connection error:", error);
-    res.status(500).json({ error: "Database connection failed" });
-  }
-});
 
 // Test route
 app.get("/test", (req, res) => {

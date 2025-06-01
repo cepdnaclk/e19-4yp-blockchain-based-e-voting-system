@@ -1,35 +1,37 @@
 import express, { Router } from "express";
+import { validatePasswrd } from "../services/authService";
+import { dbQuery } from "../services/dbService";
 
 const router: Router = express.Router();
 
-// Error handling middleware for login
-router.use(
-  (
-    err: Error,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error(err.stack);
-    res.status(500).json({ error: "Something went wrong!" });
-  }
-);
-
 // Login route
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const { username, password } = req.body;
+  const user: {
+    id: string;
+    user_name: string;
+    password: string;
+    created_at: Date;
+  }[] = (
+    await dbQuery({
+      query: "SELECT * FROM admin_data WHERE user_name = $1",
+      params: [username],
+    })
+  ).rows;
 
-  // Dummy authentication logic
-  if (username === "admin" && password === "password") {
-    res.status(200).json({ message: "Login successful", token: "dummy-token" });
-  } else {
-    res.status(401).json({ error: "Invalid credentials" });
+  if (user.length === 0) {
+    res.status(400).json({ message: "User not found", userName: username });
+    return;
   }
-});
 
-// Test route for login
-router.get("/login-test", (req, res) => {
-  res.status(200).json({ message: "Login route is working" });
+  const isPasswordMatch = await validatePasswrd(password, user[0].password);
+  if (isPasswordMatch) {
+    res.status(200).json({ message: "Authenticated", userName: username });
+  } else {
+    res
+      .status(200)
+      .json({ message: "Password does not match", userName: username });
+  }
 });
 
 export default router;

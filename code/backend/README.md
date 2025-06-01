@@ -30,6 +30,9 @@ JWT_EXPIRES_IN=24h              # JWT token expiration time
 
 # CORS Configuration
 CORS_ORIGIN=http://localhost:3000  # Allowed origin for CORS
+
+# DB migrations
+DATABASE_URL = postgres://user_name:password@localhost:port/db_name
 ```
 
 ## Project Structure
@@ -73,4 +76,4 @@ backend/
 - Never commit the `.env` file to version control
 - Keep your private keys and secrets secure
 - Use strong passwords for database and JWT
-- In production, use environment-specific values 
+- In production, use environment-specific values

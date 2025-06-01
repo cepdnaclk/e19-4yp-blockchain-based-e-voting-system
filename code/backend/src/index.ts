@@ -4,6 +4,7 @@ import cors from "cors";
 import voteRoutes from "./routes/voteRoutes";
 import loginRoutes from "./routes/loginRouter";
 import registerRouter from "./routes/registerRouter";
+import voterLoginRoutes from './routes/voterLoginRoutes';
 
 dotenv.config();
 
@@ -31,6 +32,9 @@ app.use("/api/admin", loginRoutes);
 
 // Voting router
 app.use("/api/votes", voteRoutes);
+
+// Voter login router
+app.use("/api/voter", voterLoginRoutes);
 
 // Test route
 app.get("/test", (req, res) => {

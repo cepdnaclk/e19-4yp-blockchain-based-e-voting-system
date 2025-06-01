@@ -14,17 +14,4 @@ router.post("/login", (req, res) => {
   }
 });
 
-// Error handling middleware for login
-router.use(
-  (
-    err: Error,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error(err.stack);
-    res.status(500).json({ error: "Something went wrong!" });
-  }
-);
-
 export default router;

@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express';
 import { Router } from 'express';
+import { getCandidates, castVote, getResults } from '../controllers/voteController';
 
-const router: Router = express.Router();
+const router = Router();
 
 // Status route
 router.get('/status', (req: Request, res: Response) => {
@@ -16,6 +17,15 @@ router.get('/status', (req: Request, res: Response) => {
 router.get('/', (req: Request, res: Response) => {
   res.status(200).json({ message: 'Vote routes are working' });
 });
+
+// Get all candidates
+router.get('/candidates', getCandidates);
+
+// Cast a vote
+//router.post('/cast', castVote);
+
+// Get voting results
+router.get('/results', getResults);
 
 // TODO: Add vote-related routes
 

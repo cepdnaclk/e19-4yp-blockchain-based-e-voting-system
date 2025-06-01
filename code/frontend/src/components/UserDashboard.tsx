@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -29,6 +29,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  CardMedia,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import Navigation from "./Navigation";
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
@@ -38,158 +43,125 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import RadioGroup from "@mui/material/RadioGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
 
-// Updated mock data with more candidates and professional images
-const mockCandidates = [
-  {
-    id: 1,
-    name: "John Doe",
-    party: "Democratic Party",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
-    position: "Presidential Candidate",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    party: "Republican Party",
-    image:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
-    position: "Presidential Candidate",
-  },
-  {
-    id: 3,
-    name: "Mike Johnson",
-    party: "Independent Party",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop",
-    position: "Presidential Candidate",
-  },
-  {
-    id: 4,
-    name: "Sarah Williams",
-    party: "Green Party",
-    image:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
-    position: "Presidential Candidate",
-  },
-  {
-    id: 5,
-    name: "David Chen",
-    party: "Progressive Party",
-    image:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop",
-    position: "Presidential Candidate",
-  },
-  {
-    id: 6,
-    name: "Maria Rodriguez",
-    party: "Socialist Party",
-    image:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop",
-    position: "Presidential Candidate",
-  },
-  {
-    id: 7,
-    name: "James Wilson",
-    party: "Libertarian Party",
-    image:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop",
-    position: "Presidential Candidate",
-  },
-  {
-    id: 8,
-    name: "Emily Chen",
-    party: "Conservative Party",
-    image:
-      "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=150&h=150&fit=crop",
-    position: "Presidential Candidate",
-  },
-  {
-    id: 9,
-    name: "Robert Taylor",
-    party: "Liberal Party",
-    image:
-      "https://images.unsplash.com/photo-1506795660198-e95c6320215d?w=150&h=150&fit=crop",
-    position: "Presidential Candidate",
-  },
-  {
-    id: 10,
-    name: "Sophia Patel",
-    party: "Centrist Party",
-    image:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop",
-    position: "Presidential Candidate",
-  },
-  {
-    id: 11,
-    name: "Michael Brown",
-    party: "Reform Party",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop",
-    position: "Presidential Candidate",
-  },
-  {
-    id: 12,
-    name: "Lisa Anderson",
-    party: "Unity Party",
-    image:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
-    position: "Presidential Candidate",
-  },
-];
+interface Candidate {
+  id: number;
+  name: string;
+  party: string;
+  position: string;
+  image_url: string;
+}
 
-type View = "vote" | "profile" | "results";
+interface VoteResponse {
+  message: string;
+  voter: {
+    id: number;
+    voter_id: string;
+    name: string;
+    has_voted: boolean;
+  };
+}
+
+interface UserProfile {
+  name: string;
+  email: string;
+  voterId: string;
+  address: string;
+  registrationDate: string;
+  votingHistory: {
+    election: string;
+    date: string;
+    status: string;
+  }[];
+}
+
+const defaultUserProfile: UserProfile = {
+  name: "John Doe",
+  email: "john.doe@example.com",
+  voterId: "VOTER12345",
+  address: "123 Main St, City, Country",
+  registrationDate: "2023-01-01",
+  votingHistory: [
+    { election: "Presidential 2023", date: "2023-02-15", status: "Voted" },
+    { election: "Local 2022", date: "2022-08-10", status: "Voted" },
+  ],
+};
 
 const UserDashboard: React.FC = () => {
-  const [selectedCandidate, setSelectedCandidate] = useState<number | null>(
+  const [userProfile, setUserProfile] =
+    useState<UserProfile>(defaultUserProfile);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
     null
   );
-  const [voted, setVoted] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<View>("vote");
+  const [success, setSuccess] = useState<string | null>(null);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [currentView, setCurrentView] = useState<
+    "vote" | "profile" | "results"
+  >("vote");
   const [electionEnded, setElectionEnded] = useState(false);
   const theme = useTheme();
   const navigate = useNavigate();
 
-  // Mock user profile data
-  const userProfile = {
-    name: "John Smith",
-    email: "john.smith@example.com",
-    voterId: "V123456789",
-    address: "123 Main St, City, Country",
-    registrationDate: "2024-01-15",
-    votingHistory: [
-      {
-        election: "Presidential Election 2024",
-        date: "2024-03-15",
-        status: "Voted",
-      },
-      { election: "Local Elections 2023", date: "2023-11-05", status: "Voted" },
-    ],
+  useEffect(() => {
+    fetchCandidates();
+  }, []);
+
+  const fetchCandidates = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/votes/candidates"
+      );
+      setCandidates((response.data as { candidates: Candidate[] }).candidates);
+    } catch (error) {
+      console.error("Error fetching candidates:", error);
+      setError("Failed to fetch candidates. Please try again later.");
+    }
   };
 
-  // Mock voting results
-  const votingResults = mockCandidates.map((candidate) => ({
-    ...candidate,
-    votes: Math.floor(Math.random() * 1000),
-    percentage: Math.floor(Math.random() * 100),
-  }));
+  const handleVoteClick = (candidate: Candidate) => {
+    setSelectedCandidate(candidate);
+    setOpenDialog(true);
+  };
 
-  const handleVote = async () => {
-    if (!selectedCandidate) {
-      setError("Please select a candidate before voting");
-      return;
-    }
+  const handleConfirmVote = async () => {
+    if (!selectedCandidate) return;
 
     try {
-      // TODO: Implement actual voting logic with blockchain
-      console.log("Voting for candidate:", selectedCandidate);
-      setVoted(true);
-      setError(null);
-    } catch (err) {
-      setError("Failed to submit vote. Please try again.");
+      const voterId = localStorage.getItem("voterId"); // Assuming voter ID is stored in localStorage
+      if (!voterId) {
+        setError("Voter ID not found. Please login again.");
+        return;
+      }
+
+      const response = await axios.post(
+        "http://localhost:5000/api/votes/cast",
+        {
+          candidate_id: selectedCandidate.id,
+          voter_id: voterId,
+        }
+      );
+
+      setSuccess("Vote cast successfully!");
+      setOpenDialog(false);
+      // Optionally refresh candidates or redirect
+      setTimeout(() => {
+        navigate("/results"); // Redirect to results page
+      }, 2000);
+    } catch (error: any) {
+      setError(
+        error.response?.data?.error || "Failed to cast vote. Please try again."
+      );
     }
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedCandidate(null);
   };
 
   const handleReturnHome = () => {
@@ -375,14 +347,14 @@ const UserDashboard: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {votingResults.map((result) => (
+                {candidates.map((result) => (
                   <TableRow key={result.id}>
                     <TableCell>
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 2 }}
                       >
                         <Avatar
-                          src={result.image}
+                          src={result.image_url}
                           sx={{ width: 40, height: 40 }}
                         />
                         <Typography>{result.name}</Typography>
@@ -399,7 +371,7 @@ const UserDashboard: React.FC = () => {
         ) : (
           // Show vote status and waiting message when election is ongoing
           <Box sx={{ textAlign: "center", py: 4 }}>
-            {voted ? (
+            {success ? (
               <>
                 <CheckCircleIcon
                   sx={{
@@ -409,58 +381,58 @@ const UserDashboard: React.FC = () => {
                   }}
                 />
                 <Typography variant="h6" color="success.main" gutterBottom>
-                  Your Vote Has Been Recorded
+                  {success}
                 </Typography>
                 <Typography
                   variant="body1"
                   color="text.secondary"
                   sx={{ mb: 3 }}
                 >
-                  Thank you for participating in the election. Your vote has
-                  been securely recorded on the blockchain.
+                  Thank you for participating in the election.
                 </Typography>
-                <Box sx={{ maxWidth: 400, mx: "auto", mt: 4 }}>
-                  <Card sx={{ p: 2, background: "rgba(0, 0, 0, 0.02)" }}>
-                    <Typography variant="subtitle1" gutterBottom>
-                      Your Vote Details
-                    </Typography>
-                    {selectedCandidate && (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 2,
-                          mt: 2,
-                        }}
-                      >
-                        <Avatar
-                          src={
-                            mockCandidates.find(
-                              (c) => c.id === selectedCandidate
-                            )?.image
-                          }
-                          sx={{ width: 48, height: 48 }}
-                        />
-                        <Box>
-                          <Typography variant="body1">
-                            {
-                              mockCandidates.find(
-                                (c) => c.id === selectedCandidate
-                              )?.name
-                            }
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {
-                              mockCandidates.find(
-                                (c) => c.id === selectedCandidate
-                              )?.party
-                            }
-                          </Typography>
-                        </Box>
-                      </Box>
-                    )}
-                  </Card>
-                </Box>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={2}
+                  justifyContent="center"
+                >
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    onClick={handleReturnHome}
+                    startIcon={<HomeIcon />}
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: "none",
+                      px: 3,
+                      py: 1,
+                      borderWidth: 2,
+                      "&:hover": {
+                        borderWidth: 2,
+                      },
+                    }}
+                  >
+                    Return Home
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleViewResults}
+                    startIcon={<BarChartIcon />}
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: "none",
+                      px: 3,
+                      py: 1,
+                      boxShadow: "0 4px 14px rgba(0, 0, 0, 0.1)",
+                      "&:hover": {
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)",
+                      },
+                    }}
+                  >
+                    View Results
+                  </Button>
+                </Stack>
               </>
             ) : (
               <>
@@ -667,290 +639,170 @@ const UserDashboard: React.FC = () => {
                   </Zoom>
                 )}
 
-                {voted ? (
+                {success && (
                   <Zoom in>
-                    <Box sx={{ textAlign: "center", py: 3 }}>
-                      <CheckCircleIcon
-                        sx={{ fontSize: 60, color: "success.main", mb: 2 }}
-                      />
-                      <Typography
-                        variant="h5"
-                        color="success.main"
-                        gutterBottom
-                      >
-                        Vote Successfully Recorded!
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        color="text.secondary"
-                        sx={{ mb: 3 }}
-                      >
-                        Thank you for participating in the election.
-                      </Typography>
-                      <Stack
-                        direction={{ xs: "column", sm: "row" }}
-                        spacing={2}
-                        justifyContent="center"
-                      >
-                        <Button
-                          variant="outlined"
-                          size="large"
-                          onClick={handleReturnHome}
-                          startIcon={<HomeIcon />}
-                          sx={{
-                            borderRadius: 2,
-                            textTransform: "none",
-                            px: 3,
-                            py: 1,
-                            borderWidth: 2,
-                            "&:hover": {
-                              borderWidth: 2,
-                            },
-                          }}
-                        >
-                          Return Home
-                        </Button>
-                        <Button
-                          variant="contained"
-                          size="large"
-                          onClick={handleViewResults}
-                          startIcon={<BarChartIcon />}
-                          sx={{
-                            borderRadius: 2,
-                            textTransform: "none",
-                            px: 3,
-                            py: 1,
-                            boxShadow: "0 4px 14px rgba(0, 0, 0, 0.1)",
-                            "&:hover": {
-                              transform: "translateY(-2px)",
-                              boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)",
-                            },
-                          }}
-                        >
-                          View Results
-                        </Button>
-                      </Stack>
-                    </Box>
+                    <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>
+                      {success}
+                    </Alert>
                   </Zoom>
-                ) : (
+                )}
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 3,
+                    height: "calc(100vh - 200px)",
+                  }}
+                >
                   <Box
                     sx={{
+                      flex: 1,
                       display: "flex",
-                      gap: 3,
-                      height: "calc(100vh - 200px)",
+                      flexDirection: "column",
+                      overflow: "hidden",
                     }}
                   >
-                    <Box
+                    <Typography
+                      variant="subtitle1"
                       sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        overflow: "hidden",
+                        fontWeight: 600,
+                        color: theme.palette.primary.main,
+                        mb: 2,
                       }}
                     >
-                      <Typography
-                        variant="subtitle1"
-                        sx={{
-                          fontWeight: 600,
-                          color: theme.palette.primary.main,
-                          mb: 2,
+                      Select a Candidate
+                    </Typography>
+                    <Box
+                      sx={{
+                        maxHeight: 400,
+                        overflowY: "auto",
+                        background: "#fff",
+                        borderRadius: 2,
+                        boxShadow: 2,
+                        p: 2,
+                        mb: 2,
+                      }}
+                    >
+                      <RadioGroup
+                        value={selectedCandidate ? selectedCandidate.id : ""}
+                        onChange={(_, value) => {
+                          const candidate = candidates.find(
+                            (c) => c.id === Number(value)
+                          );
+                          setSelectedCandidate(candidate || null);
                         }}
                       >
-                        Select a Candidate
-                      </Typography>
-                      <Box
-                        sx={{
-                          flex: 1,
-                          overflowY: "auto",
-                          pr: 1,
-                          "&::-webkit-scrollbar": {
-                            width: "8px",
-                          },
-                          "&::-webkit-scrollbar-track": {
-                            background: "rgba(0, 0, 0, 0.05)",
-                            borderRadius: "4px",
-                          },
-                          "&::-webkit-scrollbar-thumb": {
-                            background: "rgba(0, 0, 0, 0.2)",
-                            borderRadius: "4px",
-                            "&:hover": {
-                              background: "rgba(0, 0, 0, 0.3)",
-                            },
-                          },
-                        }}
-                      >
-                        <Grid container spacing={1.5}>
-                          {mockCandidates.map((candidate, index) => (
-                            <Grid item xs={12} key={candidate.id}>
-                              <Fade
-                                in
-                                timeout={300}
-                                style={{ transitionDelay: `${index * 100}ms` }}
-                              >
-                                <Card
+                        {candidates.map((candidate) => (
+                          <Box
+                            key={candidate.id}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              mb: 2,
+                              p: 1,
+                              borderRadius: 2,
+                              transition: "background 0.2s",
+                              background:
+                                selectedCandidate?.id === candidate.id
+                                  ? "rgba(25, 118, 210, 0.08)"
+                                  : "transparent",
+                              "&:hover": {
+                                background: "rgba(25, 118, 210, 0.12)",
+                              },
+                            }}
+                          >
+                            <FormControlLabel
+                              value={candidate.id}
+                              control={<Radio color="primary" />}
+                              label={
+                                <Box
                                   sx={{
-                                    borderRadius: 2,
-                                    transition: "all 0.3s ease",
-                                    border:
-                                      selectedCandidate === candidate.id
-                                        ? `2px solid ${theme.palette.primary.main}`
-                                        : "1px solid",
-                                    borderColor:
-                                      selectedCandidate === candidate.id
-                                        ? theme.palette.primary.main
-                                        : "divider",
-                                    "&:hover": {
-                                      transform: "translateY(-2px)",
-                                      boxShadow:
-                                        "0 4px 20px rgba(0, 0, 0, 0.1)",
-                                    },
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 2,
                                   }}
                                 >
-                                  <CardContent sx={{ p: 1.5 }}>
-                                    <Box
-                                      sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 2,
-                                      }}
+                                  <Avatar
+                                    src={candidate.image_url}
+                                    alt={candidate.name}
+                                    sx={{ width: 48, height: 48 }}
+                                  />
+                                  <Box>
+                                    <Typography fontWeight={600}>
+                                      {candidate.name}
+                                    </Typography>
+                                    <Typography
+                                      variant="body2"
+                                      color="text.secondary"
                                     >
-                                      <Avatar
-                                        src={candidate.image}
-                                        sx={{ width: 48, height: 48 }}
-                                      />
-                                      <Box sx={{ flex: 1 }}>
-                                        <Typography
-                                          variant="subtitle1"
-                                          component="div"
-                                        >
-                                          {candidate.name}
-                                        </Typography>
-                                        <Typography
-                                          variant="body2"
-                                          color="text.secondary"
-                                        >
-                                          {candidate.party}
-                                        </Typography>
-                                        <Typography
-                                          variant="caption"
-                                          color="text.secondary"
-                                        >
-                                          {candidate.position}
-                                        </Typography>
-                                      </Box>
-                                      <Radio
-                                        checked={
-                                          selectedCandidate === candidate.id
-                                        }
-                                        onChange={() =>
-                                          setSelectedCandidate(candidate.id)
-                                        }
-                                        sx={{
-                                          color: theme.palette.primary.main,
-                                          "&.Mui-checked": {
-                                            color: theme.palette.primary.main,
-                                          },
-                                        }}
-                                      />
-                                    </Box>
-                                  </CardContent>
-                                </Card>
-                              </Fade>
-                            </Grid>
-                          ))}
-                        </Grid>
-                      </Box>
-                    </Box>
-
-                    <Box
-                      sx={{
-                        width: 200,
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        gap: 2,
-                        p: 2,
-                        borderRadius: 2,
-                        background: "rgba(255, 255, 255, 0.5)",
-                        backdropFilter: "blur(10px)",
-                        height: "fit-content",
-                        alignSelf: "center",
-                        position: "sticky",
-                        top: "60%",
-                        transform: "translateY(-50%)",
-                        mt: 4,
-                      }}
-                    >
-                      <Typography
-                        variant="subtitle1"
-                        sx={{
-                          fontWeight: 600,
-                          color: theme.palette.primary.main,
-                        }}
-                      >
-                        Your Vote
-                      </Typography>
-                      {selectedCandidate ? (
-                        <Box sx={{ textAlign: "center" }}>
-                          <Avatar
-                            src={
-                              mockCandidates.find(
-                                (c) => c.id === selectedCandidate
-                              )?.image
-                            }
-                            sx={{ width: 80, height: 80, mb: 1 }}
-                          />
-                          <Typography variant="subtitle1">
-                            {
-                              mockCandidates.find(
-                                (c) => c.id === selectedCandidate
-                              )?.name
-                            }
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {
-                              mockCandidates.find(
-                                (c) => c.id === selectedCandidate
-                              )?.party
-                            }
-                          </Typography>
-                        </Box>
-                      ) : (
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          align="center"
-                        >
-                          Select a candidate to cast your vote 
-                        </Typography>
-                      )}
-                      <Button
-                        variant="contained"
-                        size="large"
-                        onClick={handleVote}
-                        disabled={!selectedCandidate}
-                        fullWidth
-                        sx={{
-                          mt: 2,
-                          py: 1.5,
-                          borderRadius: 2,
-                          textTransform: "none",
-                          fontSize: "1rem",
-                          fontWeight: 600,
-                          boxShadow: "0 4px 14px rgba(0, 0, 0, 0.1)",
-                          transition: "all 0.3s ease",
-                          "&:hover": {
-                            transform: "translateY(-2px)",
-                            boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)",
-                          },
-                        }}
-                      >
-                        Submit Vote
-                      </Button>
+                                      {candidate.party} — {candidate.position}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              }
+                              sx={{ flex: 1, m: 0 }}
+                            />
+                          </Box>
+                        ))}
+                      </RadioGroup>
                     </Box>
                   </Box>
-                )}
+
+                  <Box
+                    sx={{
+                      width: 200,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: 2,
+                      p: 2,
+                      borderRadius: 2,
+                      background: "rgba(255, 255, 255, 0.5)",
+                      backdropFilter: "blur(10px)",
+                      height: "fit-content",
+                      alignSelf: "center",
+                      position: "sticky",
+                      top: "60%",
+                      transform: "translateY(-50%)",
+                      mt: 4,
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 600,
+                        color: theme.palette.primary.main,
+                      }}
+                    >
+                      Your Vote
+                    </Typography>
+                    {selectedCandidate && (
+                      <Box sx={{ textAlign: "center" }}>
+                        <Avatar
+                          src={selectedCandidate.image_url}
+                          sx={{ width: 80, height: 80, mb: 1 }}
+                        />
+                        <Typography variant="subtitle1">
+                          {selectedCandidate.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {selectedCandidate.party}
+                        </Typography>
+                      </Box>
+                    )}
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      fullWidth
+                      disabled={!selectedCandidate}
+                      onClick={() => setOpenDialog(true)}
+                      sx={{ mt: 2, borderRadius: 2, fontWeight: 600 }}
+                    >
+                      Confirm Vote
+                    </Button>
+                  </Box>
+                </Box>
               </Paper>
             </Fade>
           )}
@@ -958,6 +810,28 @@ const UserDashboard: React.FC = () => {
           {currentView === "results" && renderResultsView()}
         </Container>
       </Box>
+
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogTitle>Confirm Your Vote</DialogTitle>
+        <DialogContent>
+          {selectedCandidate && (
+            <Typography>
+              Are you sure you want to vote for {selectedCandidate.name} (
+              {selectedCandidate.party})? This action cannot be undone.
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button
+            onClick={handleConfirmVote}
+            color="primary"
+            variant="contained"
+          >
+            Confirm Vote
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

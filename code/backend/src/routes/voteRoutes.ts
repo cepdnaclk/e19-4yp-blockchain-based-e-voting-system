@@ -27,7 +27,7 @@ router.get("/", (req: Request, res: Response) => {
 router.get("/candidates", getCandidates);
 
 // Cast a vote
-//router.post('/cast', castVote);
+router.post("/cast", (req, res) => { castVote(req, res); });
 
 // Get voting results
 router.get("/results", getResults);

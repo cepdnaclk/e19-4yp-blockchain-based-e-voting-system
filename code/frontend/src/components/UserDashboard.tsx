@@ -34,6 +34,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  CircularProgress,
 } from "@mui/material";
 import Navigation from "./Navigation";
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
@@ -53,6 +54,8 @@ interface Candidate {
   party: string;
   position: string;
   image_url: string;
+  votes?: number;
+  percentage?: number;
 }
 
 interface VoteResponse {
@@ -69,7 +72,6 @@ interface UserProfile {
   name: string;
   email: string;
   voterId: string;
-  address: string;
   registrationDate: string;
   votingHistory: {
     election: string;
@@ -78,38 +80,60 @@ interface UserProfile {
   }[];
 }
 
-const defaultUserProfile: UserProfile = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-  voterId: "VOTER12345",
-  address: "123 Main St, City, Country",
-  registrationDate: "2023-01-01",
-  votingHistory: [
-    { election: "Presidential 2023", date: "2023-02-15", status: "Voted" },
-    { election: "Local 2022", date: "2022-08-10", status: "Voted" },
-  ],
-};
+interface APIResponse {
+  name: string;
+  email: string;
+  voterId: string;
+  registrationDate: string;
+  votingHistory: {
+    election: string;
+    date: string;
+    status: string;
+  }[];
+}
 
 const UserDashboard: React.FC = () => {
-  const [userProfile, setUserProfile] =
-    useState<UserProfile>(defaultUserProfile);
-  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
-    null
-  );
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [currentView, setCurrentView] = useState<
-    "vote" | "profile" | "results"
-  >("vote");
+  const [currentView, setCurrentView] = useState<"vote" | "profile" | "results">("vote");
   const [electionEnded, setElectionEnded] = useState(false);
+  const [votedCandidate, setVotedCandidate] = useState<Candidate | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const theme = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchCandidates();
+    fetchUserProfile();
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const voterId = localStorage.getItem("voterId");
+      if (!voterId) {
+        navigate("/");
+        return;
+      }
+
+      const { data } = await axios.get<APIResponse>(`http://localhost:5000/api/voter/profile/${voterId}`);
+      setUserProfile({
+        name: data.name,
+        email: data.email,
+        voterId: data.voterId,
+        registrationDate: data.registrationDate,
+        votingHistory: data.votingHistory
+      });
+      setIsLoading(false);
+    } catch (error: any) {
+      console.error("Error fetching user profile:", error);
+      setError(error.response?.data?.error || "Failed to fetch user profile");
+      setIsLoading(false);
+    }
+  };
 
   const fetchCandidates = async () => {
     try {
@@ -146,12 +170,18 @@ const UserDashboard: React.FC = () => {
         }
       );
 
-      setSuccess("Vote cast successfully!");
-      setOpenDialog(false);
-      // Optionally refresh candidates or redirect
-      setTimeout(() => {
-        navigate("/results"); // Redirect to results page
-      }, 2000);
+      if (
+        response.data &&
+        (response.data as { message?: string }).message ===
+          "Vote cast successfully"
+      ) {
+        setVotedCandidate(selectedCandidate);
+        setSuccess("Your vote has been cast!");
+        setOpenDialog(false);
+        setSelectedCandidate(null);
+      } else {
+        setError((response.data as any)?.error || "Failed to cast vote.");
+      }
     } catch (error: any) {
       setError(
         error.response?.data?.error || "Failed to cast vote. Please try again."
@@ -182,6 +212,41 @@ const UserDashboard: React.FC = () => {
     navigate("/");
   };
 
+  const handleCastVote = async () => {
+    if (!selectedCandidate) {
+      setError("Please select a candidate.");
+      return;
+    }
+    const voterId = localStorage.getItem("voterId");
+    if (!voterId) {
+      setError("You must be logged in to vote.");
+      return;
+    }
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/votes/cast",
+        {
+          candidate_id: selectedCandidate.id,
+          voter_id: voterId,
+        }
+      );
+      const data = response.data as { message?: string; error?: string };
+      if (data && data.message === "Vote cast successfully") {
+        setVotedCandidate(selectedCandidate);
+        setSuccess("Your vote has been cast!");
+        setOpenDialog(false);
+        setSelectedCandidate(null);
+      } else {
+        setError(data?.error || "Failed to cast vote.");
+      }
+    } catch (err: any) {
+      setError(
+        err.response?.data?.error ||
+          "Failed to cast vote. Please try again later."
+      );
+    }
+  };
+
   const sidePanelItems = [
     {
       text: "Cast Vote",
@@ -209,106 +274,115 @@ const UserDashboard: React.FC = () => {
           boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
-          <PersonIcon
-            sx={{ fontSize: 32, color: theme.palette.primary.main }}
-          />
-          <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
-            Your Profile
-          </Typography>
-        </Box>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        ) : !userProfile ? (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Failed to load profile data
+          </Alert>
+        ) : (
+          <>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
+              <PersonIcon sx={{ fontSize: 32, color: theme.palette.primary.main }} />
+              <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
+                Your Profile
+              </Typography>
+            </Box>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Personal Information
-                </Typography>
-                <Stack spacing={2}>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Name
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ mb: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Personal Information
                     </Typography>
-                    <Typography variant="body1">{userProfile.name}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Email
-                    </Typography>
-                    <Typography variant="body1">{userProfile.email}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Voter ID
-                    </Typography>
-                    <Typography variant="body1">
-                      {userProfile.voterId}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Address
-                    </Typography>
-                    <Typography variant="body1">
-                      {userProfile.address}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Registration Date
-                    </Typography>
-                    <Typography variant="body1">
-                      {userProfile.registrationDate}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
+                    <Stack spacing={2}>
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Name
+                        </Typography>
+                        <Typography variant="body1">{userProfile.name}</Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Email
+                        </Typography>
+                        <Typography variant="body1">{userProfile.email}</Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Voter ID
+                        </Typography>
+                        <Typography variant="body1">{userProfile.voterId}</Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Registration Date
+                        </Typography>
+                        <Typography variant="body1">
+                          {new Date(userProfile.registrationDate).toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Voting History
-                </Typography>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Election</TableCell>
-                        <TableCell>Date</TableCell>
-                        <TableCell>Status</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {userProfile.votingHistory.map((history, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{history.election}</TableCell>
-                          <TableCell>{history.date}</TableCell>
-                          <TableCell>
-                            <Typography
-                              sx={{
-                                color:
-                                  history.status === "Voted"
-                                    ? "success.main"
-                                    : "error.main",
-                                fontWeight: 600,
-                              }}
-                            >
-                              {history.status}
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Voting History
+                    </Typography>
+                    <TableContainer>
+                      <Table>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Election</TableCell>
+                            <TableCell>Date</TableCell>
+                            <TableCell>Status</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {userProfile.votingHistory.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={3} align="center">
+                                No voting history available
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            userProfile.votingHistory.map((history, index) => (
+                              <TableRow key={index}>
+                                <TableCell>{history.election}</TableCell>
+                                <TableCell>{new Date(history.date).toLocaleDateString()}</TableCell>
+                                <TableCell>
+                                  <Typography
+                                    sx={{
+                                      color: history.status === "Voted" ? "success.main" : "error.main",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    {history.status}
+                                  </Typography>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </>
+        )}
       </Paper>
     </Fade>
   );
@@ -808,6 +882,44 @@ const UserDashboard: React.FC = () => {
           )}
           {currentView === "profile" && renderProfileView()}
           {currentView === "results" && renderResultsView()}
+          {votedCandidate && (
+            <Box sx={{ textAlign: "center", mt: 6 }}>
+              <CheckCircleIcon
+                sx={{ fontSize: 64, color: "success.main", mb: 2 }}
+              />
+              <Typography variant="h5" color="success.main" gutterBottom>
+                Thank you for voting!
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 3 }}>
+                You have voted for:
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <Avatar
+                  src={votedCandidate.image_url}
+                  alt={votedCandidate.name}
+                  sx={{ width: 80, height: 80, mb: 1 }}
+                />
+                <Typography variant="h6">{votedCandidate.name}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {votedCandidate.party} — {votedCandidate.position}
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ mt: 4 }}
+                onClick={() => navigate("/")}
+              >
+                Return Home
+              </Button>
+            </Box>
+          )}
         </Container>
       </Box>
 

@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS voting_history (
+    id SERIAL PRIMARY KEY,
+    voter_id VARCHAR(255) NOT NULL REFERENCES voters(voter_id),
+    election_name VARCHAR(255) NOT NULL,
+    voted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(50) DEFAULT 'Voted'
+); 

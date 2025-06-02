@@ -6,6 +6,7 @@ import authRouter from "./routes/authRouter";
 import loginRoutes from "./routes/loginRouter";
 import logoutRoutes from "./routes/logoutRouter";
 import registerRouter from "./routes/registerRouter";
+import voterLoginRoutes from "./routes/voterLoginRoutes";
 import voteRoutes from "./routes/voteRoutes";
 import { authMiddleware } from "./middlewear/authMiddlewear";
 
@@ -42,6 +43,12 @@ app.use("/api/auth/refresh-token", authRouter);
 
 // Voting router
 app.use("/api/votes", voteRoutes);
+
+// Voter login router
+app.use("/api/voter", voterLoginRoutes);
+
+// Voter login router
+app.use("/api/voter", voterLoginRoutes);
 
 // System status test route
 app.get("/api/system-status", authMiddleware, (req, res) => {

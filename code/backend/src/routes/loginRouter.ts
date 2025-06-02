@@ -9,7 +9,7 @@ import { dbQuery } from "../services/dbService";
 const router: Router = express.Router();
 
 // Login route
-router.post("/login", async (req, res) => {
+router.post("/", async (req, res) => {
   const { username, password } = req.body;
   const user: {
     id: string;
@@ -24,13 +24,13 @@ router.post("/login", async (req, res) => {
   ).rows;
 
   if (user.length === 0) {
-    res.status(400).json({ message: "User not found", userName: username });
+    res.status(401).json({ message: "User not found", userName: username });
     return;
   }
 
   const isPasswordMatch = await validatePasswrd(password, user[0].password);
   if (isPasswordMatch) {
-    const acesssToken = generateAccessToken(username);
+    const accessToken = generateAccessToken(username);
     const refreshToken = generateRefreshToken(username);
 
     // Add refresh token to db
@@ -51,14 +51,14 @@ router.post("/login", async (req, res) => {
         .json({
           message: "Authenticated",
           userName: username,
-          acesssToken: acesssToken,
+          accessToken: accessToken,
         });
     } catch {
       res.status(500).json({ message: "Internal Server Error" });
     }
   } else {
     res
-      .status(200)
+      .status(401)
       .json({ message: "Password does not match", userName: username });
   }
 });

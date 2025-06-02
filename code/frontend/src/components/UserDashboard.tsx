@@ -149,7 +149,8 @@ const UserDashboard: React.FC = () => {
 
       if (
         response.data &&
-        (response.data as { message?: string }).message === "Vote cast successfully"
+        (response.data as { message?: string }).message ===
+          "Vote cast successfully"
       ) {
         setVotedCandidate(selectedCandidate);
         setSuccess("Your vote has been cast!");

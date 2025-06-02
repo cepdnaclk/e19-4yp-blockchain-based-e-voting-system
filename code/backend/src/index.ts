@@ -5,6 +5,7 @@ import express from "express";
 import authRouter from "./routes/authRouter";
 import loginRoutes from "./routes/loginRouter";
 import registerRouter from "./routes/registerRouter";
+import voterLoginRoutes from './routes/voterLoginRoutes';
 import voteRoutes from "./routes/voteRoutes";
 
 dotenv.config();
@@ -37,6 +38,9 @@ app.use("/api/auth/refresh-token", authRouter);
 
 // Voting router
 app.use("/api/votes", voteRoutes);
+
+// Voter login router
+app.use("/api/voter", voterLoginRoutes);
 
 // Test route
 app.get("/test", (req, res) => {

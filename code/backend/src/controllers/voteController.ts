@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { dbQuery } from "../services/dbService"; // Adjust the import based on your project structure
+import { dbQuery } from "../services/dbService"; 
 
 // Get all candidates
 export const getCandidates = async (req: Request, res: Response) => {

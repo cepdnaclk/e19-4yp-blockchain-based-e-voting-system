@@ -104,6 +104,7 @@ const UserDashboard: React.FC = () => {
     "vote" | "profile" | "results"
   >("vote");
   const [electionEnded, setElectionEnded] = useState(false);
+  const [votedCandidate, setVotedCandidate] = useState<Candidate | null>(null);
   const theme = useTheme();
   const navigate = useNavigate();
 
@@ -146,12 +147,17 @@ const UserDashboard: React.FC = () => {
         }
       );
 
-      setSuccess("Vote cast successfully!");
-      setOpenDialog(false);
-      // Optionally refresh candidates or redirect
-      setTimeout(() => {
-        navigate("/results"); // Redirect to results page
-      }, 2000);
+      if (
+        response.data &&
+        (response.data as { message?: string }).message === "Vote cast successfully"
+      ) {
+        setVotedCandidate(selectedCandidate);
+        setSuccess("Your vote has been cast!");
+        setOpenDialog(false);
+        setSelectedCandidate(null);
+      } else {
+        setError((response.data as any)?.error || "Failed to cast vote.");
+      }
     } catch (error: any) {
       setError(
         error.response?.data?.error || "Failed to cast vote. Please try again."
@@ -180,6 +186,41 @@ const UserDashboard: React.FC = () => {
     // TODO: Implement logout logic
     console.log("Logout clicked");
     navigate("/");
+  };
+
+  const handleCastVote = async () => {
+    if (!selectedCandidate) {
+      setError("Please select a candidate.");
+      return;
+    }
+    const voterId = localStorage.getItem("voterId");
+    if (!voterId) {
+      setError("You must be logged in to vote.");
+      return;
+    }
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/votes/cast",
+        {
+          candidate_id: selectedCandidate.id,
+          voter_id: voterId,
+        }
+      );
+      const data = response.data as { message?: string; error?: string };
+      if (data && data.message === "Vote cast successfully") {
+        setVotedCandidate(selectedCandidate);
+        setSuccess("Your vote has been cast!");
+        setOpenDialog(false);
+        setSelectedCandidate(null);
+      } else {
+        setError(data?.error || "Failed to cast vote.");
+      }
+    } catch (err: any) {
+      setError(
+        err.response?.data?.error ||
+          "Failed to cast vote. Please try again later."
+      );
+    }
   };
 
   const sidePanelItems = [
@@ -808,6 +849,44 @@ const UserDashboard: React.FC = () => {
           )}
           {currentView === "profile" && renderProfileView()}
           {currentView === "results" && renderResultsView()}
+          {votedCandidate && (
+            <Box sx={{ textAlign: "center", mt: 6 }}>
+              <CheckCircleIcon
+                sx={{ fontSize: 64, color: "success.main", mb: 2 }}
+              />
+              <Typography variant="h5" color="success.main" gutterBottom>
+                Thank you for voting!
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 3 }}>
+                You have voted for:
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <Avatar
+                  src={votedCandidate.image_url}
+                  alt={votedCandidate.name}
+                  sx={{ width: 80, height: 80, mb: 1 }}
+                />
+                <Typography variant="h6">{votedCandidate.name}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {votedCandidate.party} — {votedCandidate.position}
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ mt: 4 }}
+                onClick={() => navigate("/")}
+              >
+                Return Home
+              </Button>
+            </Box>
+          )}
         </Container>
       </Box>
 

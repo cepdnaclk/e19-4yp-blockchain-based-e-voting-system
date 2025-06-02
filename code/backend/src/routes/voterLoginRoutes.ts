@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerVoter, voterLogin } from '../controllers/voterLoginController';
+import { registerVoter, voterLogin, getVoterProfile } from '../controllers/voterLoginController';
 
 const router = Router();
 
@@ -9,6 +9,10 @@ router.post('/userlogin', (req, res) => {
 
 router.post('/register', (req, res) => {
   registerVoter(req, res); 
+});
+
+router.get('/profile/:voter_id', (req, res) => {
+  getVoterProfile(req, res);
 });
 
 export default router; 

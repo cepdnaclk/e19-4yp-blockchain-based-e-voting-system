@@ -66,28 +66,27 @@ export const castVote = async (req: Request, res: Response) => {
 
 // Get voting results
 export const getResults = async (req: Request, res: Response) => {
-  // try {
-  //   const result = await dbQuery({
-  //     query: `
-  //       SELECT 
-  //         c.id,
-  //         c.name,
-  //         c.party,
-  //         c.position,
-  //         c.image_url,
-  //         COUNT(v.id) as votes,
-  //         ROUND(COUNT(v.id) * 100.0 / NULLIF((SELECT COUNT(*) FROM votes), 0), 2) as percentage
-  //       FROM candidates c
-  //       LEFT JOIN votes v ON c.id = v.candidate_id
-  //       GROUP BY c.id
-  //       ORDER BY votes DESC
-  //     `,
-  //     params: [],
-  //   });
-
-  //   res.status(200).json({ results: result.rows });
-  // } catch (error) {
-  //   console.error('Error fetching results:', error);
-  //   res.status(500).json({ error: 'Internal server error' });
-  // }
+  try {
+    const result = await dbQuery({
+      query: `
+        SELECT 
+          c.id,
+          c.name,
+          c.party,
+          c.position,
+          c.image_url,
+          COUNT(v.id) as votes,
+          ROUND(COUNT(v.id) * 100.0 / NULLIF((SELECT COUNT(*) FROM votes), 0), 2) as percentage
+        FROM candidates c
+        LEFT JOIN votes v ON c.id = v.candidate_id
+        GROUP BY c.id
+        ORDER BY votes DESC
+      `,
+      params: [],
+    });
+    res.status(200).json({ results: result.rows });
+  } catch (error) {
+    console.error('Error fetching results:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }; 

@@ -1,9 +1,7 @@
-import { useState } from "react";
-
 interface APIReqOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: Record<string, string> | string;
-  headers?: Record<string, string>;
+  headers?: Record<string, string | null>;
 }
 
 export const useFetch = ({
@@ -11,8 +9,6 @@ export const useFetch = ({
 }: {
   setLoading?: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const [error, setError] = useState<string | null>(null);
-
   const sendRequest = async <T>({
     url,
     options = {},
@@ -21,7 +17,6 @@ export const useFetch = ({
     options?: APIReqOptions;
   }): Promise<T> => {
     setLoading?.(true);
-    setError(null);
 
     try {
       const response = await fetch(url, {
@@ -39,13 +34,10 @@ export const useFetch = ({
       }
       const data: T = await response.json();
       return data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-      throw err;
     } finally {
       setLoading?.(false);
     }
   };
 
-  return { sendRequest, error };
+  return { sendRequest };
 };

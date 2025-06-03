@@ -12,6 +12,7 @@ import {
   Alert,
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+// Navigation component for top navigation bar
 import Navigation from "./Navigation";
 
 const UserLogin: React.FC = () => {

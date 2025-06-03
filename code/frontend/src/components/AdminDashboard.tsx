@@ -80,7 +80,6 @@ const AdminDashboard: React.FC = () => {
         } else if (response.status === 401) {
           navigate("/unautharized");
         }
-        console.log(response);
       }
     } catch (err) {
       console.error("Logout Failed. Error : ", err);

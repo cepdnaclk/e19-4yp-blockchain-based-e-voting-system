@@ -18,6 +18,7 @@ import Navigation from "./Navigation";
 const UserLogin: React.FC = () => {
   // State to store user's secret key input
   const [secretKey, setSecretKey] = useState("");
+  // State to handle and display error messages
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const theme = useTheme();

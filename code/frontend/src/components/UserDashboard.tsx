@@ -177,7 +177,7 @@ const UserDashboard: React.FC = () => {
         setOpenDialog(false);
         setSelectedCandidate(null);
         // Automatically switch to profile view to show voting history
-        setCurrentView("profile");
+        setCurrentView("results");
       } else {
         setError(response.data?.error || "Failed to cast vote.");
       }

@@ -20,7 +20,9 @@ const UserLogin: React.FC = () => {
   const [secretKey, setSecretKey] = useState("");
   // State to handle and display error messages
   const [error, setError] = useState("");
+  // Hook to programmatically navigate between routes
   const navigate = useNavigate();
+  // Get theme object from MUI to apply dynamic styles
   const theme = useTheme();
 
   interface UserLoginResponse {

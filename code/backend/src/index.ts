@@ -1,5 +1,4 @@
 import cookieParser from "cookie-parser";
-import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import authRouter from "./routes/authRouter";
@@ -13,13 +12,19 @@ import { authMiddleware } from "./middlewear/authMiddlewear";
 dotenv.config();
 
 const db = require("./models/db");
+const cors = require("cors");
 
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(express.json());
 app.use(cookieParser());
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN, // Specify allowed origin
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Specify allowed methods
+  credentials: true, // Allow cookies and authorization headers
+};
+app.use(cors(corsOptions));
+app.use(express.json());
 
 // Debug middleware
 app.use((req, res, next) => {

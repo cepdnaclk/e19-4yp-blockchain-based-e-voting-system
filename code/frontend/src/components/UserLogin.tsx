@@ -32,7 +32,7 @@ const UserLogin: React.FC = () => {
   // Function to handle form submission (login logic)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError("");// Clear any previous errors
     try {
       const response = await axios.post<UserLoginResponse>(
         "http://localhost:5000/api/voter/userlogin",

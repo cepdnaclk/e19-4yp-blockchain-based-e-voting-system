@@ -156,7 +156,7 @@ const UserDashboard: React.FC = () => {
     if (!selectedCandidate) return;
 
     try {
-      const voterId = localStorage.getItem("voterId"); // Assuming voter ID is stored in localStorage
+      const voterId = localStorage.getItem("voterId");
       if (!voterId) {
         setError("Voter ID not found. Please login again.");
         return;
@@ -170,17 +170,16 @@ const UserDashboard: React.FC = () => {
         }
       );
 
-      if (
-        response.data &&
-        (response.data as { message?: string }).message ===
-          "Vote cast successfully"
-      ) {
-        setVotedCandidate(selectedCandidate);
-        setSuccess("Your vote has been cast!");
+      if (response.data && response.data.message === "Vote cast successfully") {
+        // Update the user profile to show the new voting history
+        fetchUserProfile();
+        setSuccess("Your vote has been cast successfully!");
         setOpenDialog(false);
         setSelectedCandidate(null);
+        // Automatically switch to profile view to show voting history
+        setCurrentView("profile");
       } else {
-        setError((response.data as any)?.error || "Failed to cast vote.");
+        setError(response.data?.error || "Failed to cast vote.");
       }
     } catch (error: any) {
       setError(
@@ -882,44 +881,6 @@ const UserDashboard: React.FC = () => {
           )}
           {currentView === "profile" && renderProfileView()}
           {currentView === "results" && renderResultsView()}
-          {votedCandidate && (
-            <Box sx={{ textAlign: "center", mt: 6 }}>
-              <CheckCircleIcon
-                sx={{ fontSize: 64, color: "success.main", mb: 2 }}
-              />
-              <Typography variant="h5" color="success.main" gutterBottom>
-                Thank you for voting!
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 3 }}>
-                You have voted for:
-              </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                <Avatar
-                  src={votedCandidate.image_url}
-                  alt={votedCandidate.name}
-                  sx={{ width: 80, height: 80, mb: 1 }}
-                />
-                <Typography variant="h6">{votedCandidate.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {votedCandidate.party} — {votedCandidate.position}
-                </Typography>
-              </Box>
-              <Button
-                variant="contained"
-                color="primary"
-                sx={{ mt: 4 }}
-                onClick={() => navigate("/")}
-              >
-                Return Home
-              </Button>
-            </Box>
-          )}
         </Container>
       </Box>
 

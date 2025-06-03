@@ -69,7 +69,6 @@ const AdminDashboard: React.FC = () => {
         url: `${baseUrl}/api/admin/logout`,
         options: {
           method: "POST",
-          headers: { authorization: accessToken },
         },
       });
 

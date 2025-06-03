@@ -26,7 +26,8 @@ const AdminOTP: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const { accessToken } = useAuth();
-
+  
+  // Handle OTP form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);

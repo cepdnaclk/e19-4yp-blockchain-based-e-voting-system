@@ -41,6 +41,7 @@ const UserLogin: React.FC = () => {
           secretKey,
         }
       );
+      // If login is successful and voter_id is present, store in localStorage and navigate to dashboard
       if (response.data && response.data.voter_id) {
         localStorage.setItem("voterId", String(response.data.voter_id));
         navigate("/user/dashboard");

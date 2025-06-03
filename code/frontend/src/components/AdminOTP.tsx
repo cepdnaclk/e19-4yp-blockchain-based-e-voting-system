@@ -22,6 +22,7 @@ const AdminOTP: React.FC = () => {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Hooks
   const navigate = useNavigate();
   const theme = useTheme();
   const { accessToken } = useAuth();

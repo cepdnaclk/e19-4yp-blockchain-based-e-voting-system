@@ -59,9 +59,7 @@ const AdminLogin: React.FC = () => {
     }
   };
 
-  // const handleForgotPassword = () => {
-  //   TODO: Implement forgot password logic
-  // };
+  
 
   useEffect(() => {
     if (accessToken) {

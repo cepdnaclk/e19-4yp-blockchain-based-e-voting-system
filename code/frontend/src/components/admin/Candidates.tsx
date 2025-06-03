@@ -35,6 +35,7 @@ import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
+// Mock data for candidates
 interface Candidate {
   id: string;
   name: string;
@@ -133,6 +134,7 @@ const Candidates: React.FC = () => {
     setTabValue(newValue);
   };
 
+  // Opens dialog to edit a candidate
   const handleEditCandidate = (candidate: Candidate) => {
     setIsEditMode(true);
     setCandidateData({
@@ -154,7 +156,8 @@ const Candidates: React.FC = () => {
     setCandidateToDelete(candidateId);
     setDeleteDialogOpen(true);
   };
-
+  
+  // Deletes the selected candidate
   const handleDeleteConfirm = () => {
     // TODO: Implement delete logic
     console.log('Deleting candidate:', candidateToDelete);

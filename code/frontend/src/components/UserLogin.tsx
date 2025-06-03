@@ -12,29 +12,36 @@ import {
   Alert,
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+// Navigation component for top navigation bar
 import Navigation from "./Navigation";
 
 const UserLogin: React.FC = () => {
+  // State to store user's secret key input
   const [secretKey, setSecretKey] = useState("");
+  // State to handle and display error messages
   const [error, setError] = useState("");
+  // Hook to programmatically navigate between routes
   const navigate = useNavigate();
+  // Get theme object from MUI to apply dynamic styles
   const theme = useTheme();
-
+  // Interface describing the expected shape of the login response
   interface UserLoginResponse {
     voter_id: string | number;
     [key: string]: any;
   }
-
+  // Function to handle form submission (login logic)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError("");// Clear any previous errors
     try {
+      // Make POST request to backend API with secretKey
       const response = await axios.post<UserLoginResponse>(
         "http://localhost:5000/api/voter/userlogin",
         {
           secretKey,
         }
       );
+      // If login is successful and voter_id is present, store in localStorage and navigate to dashboard
       if (response.data && response.data.voter_id) {
         localStorage.setItem("voterId", String(response.data.voter_id));
         navigate("/user/dashboard");
@@ -50,6 +57,7 @@ const UserLogin: React.FC = () => {
   };
 
   return (
+    // Full-screen background with radial and linear gradient
     <Box
       sx={{
         minHeight: "100vh",

@@ -1,3 +1,4 @@
+// Import React, hooks, navigation, MUI components, and context
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -13,16 +14,20 @@ import {
 } from "@mui/material";
 import KeyIcon from "@mui/icons-material/Key";
 import Navigation from "./Navigation";
-import { useAuth } from "../context/AuthContect";
+import { useAuth } from "../context/AuthContect";// Custom auth context to get the access token
 
+// Functional component for Admin OTP verification
 const AdminOTP: React.FC = () => {
+  // Local state variables
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Hooks
   const navigate = useNavigate();
   const theme = useTheme();
   const { accessToken } = useAuth();
 
+  // Handle OTP form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -51,6 +56,7 @@ const AdminOTP: React.FC = () => {
     }
   }, [accessToken, navigate]);
 
+  // UI Rendering
   return (
     <Box
       sx={{

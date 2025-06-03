@@ -57,6 +57,7 @@ const UserLogin: React.FC = () => {
   };
 
   return (
+    // Full-screen background with radial and linear gradient
     <Box
       sx={{
         minHeight: "100vh",

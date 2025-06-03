@@ -156,7 +156,8 @@ const Candidates: React.FC = () => {
     setCandidateToDelete(candidateId);
     setDeleteDialogOpen(true);
   };
-
+  
+  // Deletes the selected candidate
   const handleDeleteConfirm = () => {
     // TODO: Implement delete logic
     console.log('Deleting candidate:', candidateToDelete);

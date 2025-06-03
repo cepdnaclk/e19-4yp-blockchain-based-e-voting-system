@@ -134,6 +134,7 @@ const Candidates: React.FC = () => {
     setTabValue(newValue);
   };
 
+  // Opens dialog to edit a candidate
   const handleEditCandidate = (candidate: Candidate) => {
     setIsEditMode(true);
     setCandidateData({

@@ -34,6 +34,7 @@ const UserLogin: React.FC = () => {
     e.preventDefault();
     setError("");// Clear any previous errors
     try {
+      // Make POST request to backend API with secretKey
       const response = await axios.post<UserLoginResponse>(
         "http://localhost:5000/api/voter/userlogin",
         {

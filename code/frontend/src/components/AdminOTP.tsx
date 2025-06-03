@@ -14,8 +14,9 @@ import {
 } from "@mui/material";
 import KeyIcon from "@mui/icons-material/Key";
 import Navigation from "./Navigation";
-import { useAuth } from "../context/AuthContect";
+import { useAuth } from "../context/AuthContect";// Custom auth context to get the access token
 
+// Functional component for Admin OTP verification
 const AdminOTP: React.FC = () => {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);

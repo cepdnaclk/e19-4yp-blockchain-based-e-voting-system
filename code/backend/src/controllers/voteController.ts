@@ -23,13 +23,14 @@ export const getCandidates = async (req: Request, res: Response) => {
 // Cast a vote
 export const castVote = async (req: Request, res: Response) => {
   try {
-    const { candidate_id, voter_id } = req.body;
+    const { candidate_id, voter_id, election_name = "General Election" } = req.body;
     if (!candidate_id || !voter_id) {
       return res.status(400).json({ error: 'Candidate ID and voter ID are required' });
     }
+
     // Check if voter exists and hasn't voted
     const voterResult = await dbQuery({
-      query: 'SELECT * FROM voters WHERE id = $1',
+      query: 'SELECT * FROM voters WHERE voter_id = $1',
       params: [voter_id],
     });
     if (voterResult.rows.length === 0) {
@@ -39,6 +40,7 @@ export const castVote = async (req: Request, res: Response) => {
     if (voter.has_voted) {
       return res.status(400).json({ error: 'You have already cast your vote' });
     }
+
     // Check if candidate exists
     const candidateResult = await dbQuery({
       query: 'SELECT * FROM candidates WHERE id = $1',
@@ -47,17 +49,59 @@ export const castVote = async (req: Request, res: Response) => {
     if (candidateResult.rows.length === 0) {
       return res.status(404).json({ error: 'Candidate not found' });
     }
-    // Record vote in database
-    await dbQuery({
-      query: 'INSERT INTO votes (voter_id, candidate_id) VALUES ($1, $2)',
-      params: [voter.id, candidate_id],
+    const candidate = candidateResult.rows[0];
+
+    // Start a transaction to ensure all operations succeed or fail together
+    await dbQuery({ 
+      query: 'BEGIN',
+      params: []
     });
-    // Update voter's has_voted status
-    await dbQuery({
-      query: 'UPDATE voters SET has_voted = true WHERE id = $1',
-      params: [voter.id],
-    });
-    res.status(200).json({ message: 'Vote cast successfully' });
+
+    try {
+      // Record vote in votes table with timestamp
+      const voteResult = await dbQuery({
+        query: 'INSERT INTO votes (voter_id, candidate_id) VALUES ($1, $2) RETURNING created_at',
+        params: [voter.id, candidate_id],
+      });
+      
+      const voteTimestamp = voteResult.rows[0].created_at;
+
+      // Record in voting history table
+      await dbQuery({
+        query: 'INSERT INTO voting_history (voter_id, election_name, voted_at, status) VALUES ($1, $2, $3, $4)',
+        params: [voter.voter_id, election_name, voteTimestamp, 'Voted'],
+      });
+
+      // Update voter's has_voted status
+      await dbQuery({
+        query: 'UPDATE voters SET has_voted = true, updated_at = CURRENT_TIMESTAMP WHERE voter_id = $1',
+        params: [voter.voter_id],
+      });
+
+      // Commit the transaction
+      await dbQuery({ 
+        query: 'COMMIT',
+        params: []
+      });
+      
+      // Return success with vote details
+      res.status(200).json({ 
+        message: 'Vote cast successfully',
+        vote: {
+          election: election_name,
+          candidate: candidate.name,
+          timestamp: voteTimestamp,
+          status: 'Voted'
+        }
+      });
+    } catch (error) {
+      // If any error occurs, rollback the transaction
+      await dbQuery({ 
+        query: 'ROLLBACK',
+        params: []
+      });
+      throw error;
+    }
   } catch (error) {
     console.error('Error casting vote:', error);
     res.status(500).json({ error: 'Internal server error' });

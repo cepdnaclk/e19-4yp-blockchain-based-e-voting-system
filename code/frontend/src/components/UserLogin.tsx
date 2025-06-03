@@ -29,7 +29,7 @@ const UserLogin: React.FC = () => {
     voter_id: string | number;
     [key: string]: any;
   }
-
+  // Function to handle form submission (login logic)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");

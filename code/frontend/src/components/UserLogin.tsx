@@ -24,7 +24,7 @@ const UserLogin: React.FC = () => {
   const navigate = useNavigate();
   // Get theme object from MUI to apply dynamic styles
   const theme = useTheme();
-
+  // Interface describing the expected shape of the login response
   interface UserLoginResponse {
     voter_id: string | number;
     [key: string]: any;

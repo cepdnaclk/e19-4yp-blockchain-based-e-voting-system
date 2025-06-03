@@ -18,6 +18,7 @@ import { useAuth } from "../context/AuthContect";// Custom auth context to get t
 
 // Functional component for Admin OTP verification
 const AdminOTP: React.FC = () => {
+  // Local state variables
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

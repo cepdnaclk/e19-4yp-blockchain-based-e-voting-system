@@ -11,7 +11,7 @@ export const authMiddleware = (req: any, res: any, next: any) => {
     return res.status(401).json({ message: "Authorization header missing" });
   }
 
-  const token = authHeader.split(" ")[1];
+  const token = authHeader;
   if (!token) {
     return res.status(401).json({ message: "Token missing" });
   }

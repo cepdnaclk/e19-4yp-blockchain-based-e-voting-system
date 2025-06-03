@@ -44,3 +44,15 @@ export const generateRefreshToken = (username: string): string => {
   });
   return refreshToken.toString();
 };
+
+export const getAccessTokeContent = (
+  accessToken: string
+): { username: string | null } => {
+  try {
+    const res = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
+    return { username: res.username };
+  } catch (err) {
+    console.error(err);
+    return { username: null };
+  }
+};

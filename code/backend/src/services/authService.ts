@@ -32,8 +32,9 @@ export const validatePasswrd = async (
 };
 
 export const generateAccessToken = (username: string): string => {
+  const expiresIn = process.env.JWT_ACCESS_TOKEN_EXPIRES_IN?.toString();
   const accessToken = jwt.sign({ username }, process.env.JWT_ACCESS_SECRET, {
-    expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN?.toString() || "15m",
+    expiresIn: expiresIn || "15m",
   });
   return accessToken.toString();
 };

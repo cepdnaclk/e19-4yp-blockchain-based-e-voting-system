@@ -44,9 +44,8 @@ router.post("/", async (req, res) => {
         .status(200)
         .cookie("refreshToken", refreshToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-          sameSite: "strict",
-          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days);
+          secure: false,
+          sameSite: "lax",
         })
         .json({
           message: "Authenticated",

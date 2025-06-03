@@ -13,7 +13,7 @@ export const authMiddleware = (req: any, res: any, next: any) => {
 
   const token = authHeader;
   if (!token) {
-    return res.status(401).json({ message: "Token missing" });
+    return res.status(401).json({ message: "Invalid token" });
   }
 
   jwt.verify(token, JWT_ACCESS_SECRET, (err: any, user: any) => {

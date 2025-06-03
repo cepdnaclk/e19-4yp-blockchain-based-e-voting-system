@@ -16,6 +16,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Navigation from "./Navigation";
 
 const UserLogin: React.FC = () => {
+  // State to store user's secret key input
   const [secretKey, setSecretKey] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();

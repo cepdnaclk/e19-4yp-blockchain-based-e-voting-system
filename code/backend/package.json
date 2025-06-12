@@ -8,7 +8,7 @@
     "dev": "nodemon",
     "migrate": "node-pg-migrate",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -30,9 +30,14 @@
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2",
+    "@types/jest": "^29.5.14",
     "@types/pg": "^8.15.2",
+    "@types/supertest": "^6.0.3",
+    "jest": "^30.0.0",
     "node-pg-migrate": "^8.0.1",
     "nodemon": "^3.1.10",
+    "supertest": "^7.1.1",
+    "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }

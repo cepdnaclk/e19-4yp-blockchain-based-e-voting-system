@@ -11,8 +11,6 @@ import setupMiddleware from "./middleware/setupMiddleware";
 import debugMiddleware from "./middleware/debugMiddleware";
 import errorHandling from "./middleware/errorHandlingMiddleware";
 
-// const db = require("./models/db");
-
 dotenv.config();
 
 const app: Express = express();
@@ -25,12 +23,6 @@ debugMiddleware(app);
 
 // Routes
 app.use("/api", mainRouter);
-
-// // Register routes
-// app.use("/api/admin/register", registerRouter);
-
-// // Login routes
-// app.use("/api/admin/login", loginRoutes);
 
 // // Logout router
 // app.use("/api/admin/logout", authMiddleware, logoutRoutes);
@@ -59,5 +51,7 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-  console.log(`Test the server at: http://localhost:${PORT}/test`);
+  console.log(`Test the server at: http://localhost:${PORT}/api/test`);
 });
+
+export default app;

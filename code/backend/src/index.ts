@@ -44,7 +44,7 @@ app.use("/api", mainRouter);
 //   res.status(200).json({ message: "Server is working" });
 // });
 
-// // Error handling middleware
+// Error handling middleware
 errorHandling(app);
 
 const PORT = process.env.PORT || 3000;

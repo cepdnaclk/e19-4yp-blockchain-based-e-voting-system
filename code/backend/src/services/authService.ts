@@ -13,14 +13,13 @@ export const hashPassword = async (password: string): Promise<string> => {
 };
 
 export const validateUserName = async (username: string): Promise<boolean> => {
-  const currentUsernames: { user_name: string }[] = (
-    await dbQuery({ query: "SELECT user_name FROM admin_data", params: [] })
-  ).rows;
-  const isDuplicate: boolean = currentUsernames.some(
-    (name) => name.user_name === username
-  );
-
-  return isDuplicate;
+  const matchingResultsCount: number = (
+    await dbQuery({
+      query: "SELECT COUNT(*) FROM admin_data WHERE user_name = $1",
+      params: [username],
+    })
+  ).rows[0].count;
+  return matchingResultsCount > 0;
 };
 
 export const validatePasswrd = async (

@@ -34,6 +34,4 @@ router.post("/cast", (req, res) => {
 // Get voting results
 router.get("/results", getResults);
 
-// TODO: Add vote-related routes
-
 export default router;

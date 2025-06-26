@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { sendSuccess } from "../utils/responseHandler";
-import messages from "../constants/messages";
+import messages from "../common/constants/messages";
 import adminRouter from "./adminRouter";
 
 const router = Router();

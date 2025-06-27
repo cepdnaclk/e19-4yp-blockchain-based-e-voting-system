@@ -1,3 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
+
+import express, { Express } from "express";
+
 import mainRouter from "./routes/mainRouter";
 // import loginRoutes from "./routes/loginRouter";
 // import logoutRoutes from "./routes/logoutRouter";
@@ -5,13 +10,9 @@ import mainRouter from "./routes/mainRouter";
 // import voterLoginRoutes from "./routes/voterLoginRoutes";
 // import voteRoutes from "./routes/voteRoutes";
 // import { authMiddleware } from "./middlewear/authMiddlewear";
-import express, { Express } from "express";
-import dotenv from "dotenv";
 import setupMiddleware from "./middleware/setupMiddleware";
 import debugMiddleware from "./middleware/debugMiddleware";
 import errorHandling from "./middleware/errorHandlingMiddleware";
-
-dotenv.config();
 
 const app: Express = express();
 
@@ -23,9 +24,6 @@ debugMiddleware(app);
 
 // Routes
 app.use("/api", mainRouter);
-
-// // Logout router
-// app.use("/api/admin/logout", authMiddleware, logoutRoutes);
 
 // // Token Refresh routes
 // app.use("/api/auth/refresh-token", authRouter);

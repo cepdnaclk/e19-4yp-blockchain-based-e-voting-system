@@ -1,3 +1,5 @@
+import { queryDatabase } from "../../models/db";
+
 export const dbQuery = async ({
   query,
   params,
@@ -5,7 +7,5 @@ export const dbQuery = async ({
   query: string;
   params: any[];
 }): Promise<any> => {
-  const db = require("../models/db");
-  const response = await db.query(query, params);
-  return response;
+  return await queryDatabase(query, params);
 };

@@ -45,7 +45,7 @@ const AdminLogin: React.FC = () => {
         url: `${baseUrl}/api/admin/login`,
         options: {
           method: "POST",
-          body: { username, password },
+          body: { username: username, password: password },
         },
       });
 
@@ -58,8 +58,6 @@ const AdminLogin: React.FC = () => {
       setError("Invalid username or password. Please try again.");
     }
   };
-
-  
 
   useEffect(() => {
     if (accessToken) {

@@ -1,5 +1,5 @@
 import { AdminUserType } from "../../common/types/adminTypes";
-import { dbQuery } from "../dbService";
+import { dbQuery } from "../common/dbService";
 
 export const getAdminUsersByUsername = async (
   username: string

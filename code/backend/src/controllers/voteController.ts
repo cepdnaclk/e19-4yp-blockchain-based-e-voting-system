@@ -66,9 +66,8 @@ export const castVote = async (req: Request, res: Response) => {
     try {
       // Record vote in votes table with timestamp
       const voteResult = await dbQuery({
-        query:
-          "INSERT INTO votes (voter_id, candidate_id) VALUES ($1, $2) RETURNING created_at",
-        params: [voter.id, candidate_id],
+        query: 'INSERT INTO votes (voter_id, candidate_id) VALUES ($1, $2) RETURNING created_at',
+        params: [voter.voter_id, candidate_id],
       });
 
       const voteTimestamp = voteResult.rows[0].created_at;

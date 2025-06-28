@@ -65,12 +65,13 @@ const AdminDashboard: React.FC = () => {
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      const response: { status: number; message: string } = await sendRequest({
-        url: `${baseUrl}/api/admin/logout`,
-        options: {
-          method: "POST",
-        },
-      });
+      const response: { status: number; data: { message: string } } =
+        await sendRequest({
+          url: `${baseUrl}/api/admin/logout`,
+          options: {
+            method: "POST",
+          },
+        });
 
       if (response) {
         if (response.status === 200) {

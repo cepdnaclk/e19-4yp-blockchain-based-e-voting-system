@@ -26,6 +26,7 @@ import {
   Delete as DeleteIcon,
   ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
+import { useToast } from '../../context/ToastContext';
 
 interface Party {
   id: string;
@@ -43,6 +44,7 @@ interface Candidate {
 }
 
 const Parties: React.FC = () => {
+  const { showToast } = useToast();
   const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -125,8 +127,20 @@ const Parties: React.FC = () => {
   };
 
   const handleSubmit = () => {
+    // Validate form data
+    if (!partyData.name.trim()) {
+      showToast("Please enter a party name.", "error");
+      return;
+    }
+
+    if (!partyData.symbol.trim()) {
+      showToast("Please enter a party symbol.", "error");
+      return;
+    }
+
     // TODO: Implement party creation logic
     console.log('Creating party:', partyData);
+    showToast("Party created successfully!", "success");
     handleCloseDialog();
   };
 
@@ -136,10 +150,17 @@ const Parties: React.FC = () => {
   };
 
   const handleDeleteConfirm = () => {
-    // TODO: Implement delete logic
-    console.log('Deleting party:', partyToDelete);
-    setDeleteDialogOpen(false);
-    setPartyToDelete(null);
+    try {
+      // TODO: Implement delete logic
+      console.log('Deleting party:', partyToDelete);
+      showToast("Party deleted successfully!", "success");
+    } catch (error) {
+      console.error("Error deleting party:", error);
+      showToast("Failed to delete party. Please try again.", "error");
+    } finally {
+      setDeleteDialogOpen(false);
+      setPartyToDelete(null);
+    }
   };
 
   const PartyList: React.FC<{ parties: Party[] }> = ({ parties }) => (

@@ -15,6 +15,9 @@ const messages = {
     passwordMismatch: "Username and Password does not match",
     authenticated: "Authenticated successfully",
   },
+  auth: {
+    refreshTokenNotFound: "Refresh token is not found",
+  },
 };
 
 export default messages;

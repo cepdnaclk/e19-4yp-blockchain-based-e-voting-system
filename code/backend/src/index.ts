@@ -4,12 +4,8 @@ dotenv.config();
 import express, { Express } from "express";
 
 import mainRouter from "./routes/mainRouter";
-// import loginRoutes from "./routes/loginRouter";
-// import logoutRoutes from "./routes/logoutRouter";
-// import registerRouter from "./routes/registerRouter";
-// import voterLoginRoutes from "./routes/voterLoginRoutes";
-// import voteRoutes from "./routes/voteRoutes";
-// import { authMiddleware } from "./middlewear/authMiddlewear";
+import voterLoginRoutes from "./routes/voterLoginRoutes";
+import voteRoutes from "./routes/voteRoutes";
 import setupMiddleware from "./middleware/setupMiddleware";
 import debugMiddleware from "./middleware/debugMiddleware";
 import errorHandling from "./middleware/errorHandlingMiddleware";
@@ -25,22 +21,14 @@ debugMiddleware(app);
 // Routes
 app.use("/api", mainRouter);
 
-// // Token Refresh routes
-// app.use("/api/auth/refresh-token", authRouter);
+// Voting router
+app.use("/api/votes", voteRoutes);
 
-// // Voting router
-// app.use("/api/votes", voteRoutes);
+// Voter login router
+app.use("/api/voter", voterLoginRoutes);
 
-// // Voter login router
-// app.use("/api/voter", voterLoginRoutes);
-
-// // Voter login router
-// app.use("/api/voter", voterLoginRoutes);
-
-// // System status test route
-// app.get("/api/system-status", authMiddleware, (req, res) => {
-//   res.status(200).json({ message: "Server is working" });
-// });
+// Voter login router
+app.use("/api/voter", voterLoginRoutes);
 
 // Error handling middleware
 errorHandling(app);

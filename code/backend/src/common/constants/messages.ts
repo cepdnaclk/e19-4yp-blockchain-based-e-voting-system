@@ -18,6 +18,12 @@ const messages = {
   auth: {
     refreshTokenNotFound: "Refresh token is not found",
   },
+  election: {
+    missingFields: "The following fields are missing :",
+    createSuccess: "Election created successfully",
+    startDateEndDateMismatch:
+      "Start date and time must be before end date and time.",
+  },
 };
 
 export default messages;

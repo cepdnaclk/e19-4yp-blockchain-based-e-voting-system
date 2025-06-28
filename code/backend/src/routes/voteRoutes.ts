@@ -5,7 +5,7 @@ import {
   castVote,
   getResults,
 } from "../controllers/voteController";
-import { authMiddleware } from "../middlewear/authMiddlewear";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const router = Router();
 
@@ -27,11 +27,11 @@ router.get("/", (req: Request, res: Response) => {
 router.get("/candidates", getCandidates);
 
 // Cast a vote
-router.post("/cast", (req, res) => { castVote(req, res); });
+router.post("/cast", (req, res) => {
+  castVote(req, res);
+});
 
 // Get voting results
 router.get("/results", getResults);
-
-// TODO: Add vote-related routes
 
 export default router;

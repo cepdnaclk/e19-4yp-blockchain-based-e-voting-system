@@ -38,19 +38,22 @@ const AdminLogin: React.FC = () => {
 
     try {
       const response: {
-        message: string;
-        username: string;
-        accessToken: string;
+        status: number;
+        data: {
+          message: string;
+          username: string;
+          accessToken: string;
+        };
       } = await sendRequest({
         url: `${baseUrl}/api/admin/login`,
         options: {
           method: "POST",
-          body: { username, password },
+          body: { username: username, password: password },
         },
       });
 
       if (response) {
-        setAccessToken(response.accessToken);
+        setAccessToken(response.data.accessToken);
         navigate("/admin/dashboard");
       }
     } catch (err) {
@@ -58,8 +61,6 @@ const AdminLogin: React.FC = () => {
       setError("Invalid username or password. Please try again.");
     }
   };
-
-  
 
   useEffect(() => {
     if (accessToken) {

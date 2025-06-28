@@ -18,7 +18,7 @@ export const useFetch = ({
   }: {
     url: string;
     options?: APIReqOptions;
-  }): Promise<T> => {
+  }): Promise<{ status: number; data: T }> => {
     setLoading?.(true);
 
     const performRequest = async (
@@ -69,7 +69,7 @@ export const useFetch = ({
       }
 
       const data: T = await response.json();
-      return data;
+      return { status: response.status, data: data };
     } finally {
       setLoading?.(false);
     }

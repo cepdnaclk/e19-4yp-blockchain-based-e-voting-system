@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { sendError, sendSuccess } from "../../utils/responseHandler";
-import { hashPassword } from "../common/authService";
+import { hashPassword } from "../auth/authService";
 import { dbQuery } from "../common/dbService";
 import messages from "../../common/constants/messages";
 

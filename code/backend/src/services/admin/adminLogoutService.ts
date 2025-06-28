@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { dbQuery } from "../common/dbService";
-import { getAccessTokeContent } from "../common/authService";
+import { getAccessTokeContent } from "../auth/authService";
 import { sendError, sendSuccess } from "../../utils/responseHandler";
 
 export const adminLogoutService = async (

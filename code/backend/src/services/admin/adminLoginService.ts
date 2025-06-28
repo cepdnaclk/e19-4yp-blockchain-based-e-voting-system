@@ -1,4 +1,4 @@
-import { generateRefreshToken } from "../common/authService";
+import { generateRefreshToken } from "../auth/authService";
 import { dbQuery } from "../common/dbService";
 
 export const adminLoginService = async (

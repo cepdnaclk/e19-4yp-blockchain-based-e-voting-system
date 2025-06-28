@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -20,95 +20,70 @@ import {
   IconButton,
   CircularProgress,
   Chip,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
   ArrowBack as ArrowBackIcon,
-} from '@mui/icons-material';
-import { useToast } from '../../context/ToastContext';
+} from "@mui/icons-material";
+import { useToast } from "../../context/ToastContext";
+import { useFetch } from "../../hooks/useFetch";
 
 interface Party {
-  id: string;
+  id: number;
   name: string;
   symbol: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
+  candidate_count?: number;
 }
 
 interface Candidate {
-  id: string;
+  id: number;
   name: string;
   party: string;
-  status: 'active' | 'inactive';
-  voteNumber: string;
+  status: "active" | "inactive";
+  vote_number: string;
 }
+
+const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
 
 const Parties: React.FC = () => {
   const { showToast } = useToast();
   const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [partyToDelete, setPartyToDelete] = useState<string | null>(null);
+  const [partyToDelete, setPartyToDelete] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedParty, setSelectedParty] = useState<Party | null>(null);
+  const [parties, setParties] = useState<Party[]>([]);
   const [partyData, setPartyData] = useState({
-    name: '',
-    symbol: '',
+    name: "",
+    symbol: "",
   });
+  const { sendRequest } = useFetch({ setLoading: setIsLoading });
 
-  // Simulate loading data
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+  // Fetch parties on component mount
+  useEffect(() => {
+    fetchParties();
   }, []);
 
-  // Mock data - replace with actual data from your backend
-  const parties: Party[] = [
-    {
-      id: '1',
-      name: 'Party A',
-      symbol: 'https://example.com/symbol1.png',
-      status: 'active',
-    },
-    {
-      id: '2',
-      name: 'Party B',
-      symbol: 'https://example.com/symbol2.png',
-      status: 'active',
-    },
-    {
-      id: '3',
-      name: 'Party C',
-      symbol: 'https://example.com/symbol3.png',
-      status: 'inactive',
-    },
-  ];
+  const fetchParties = async () => {
+    try {
+      const response = await sendRequest({
+        url: `${baseUrl}/api/admin/party/stats`,
+        options: {
+          method: "GET",
+        },
+      });
 
-  const candidates: Candidate[] = [
-    {
-      id: '1',
-      name: 'John Doe',
-      party: 'Party A',
-      status: 'active',
-      voteNumber: '001',
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      party: 'Party A',
-      status: 'inactive',
-      voteNumber: '002',
-    },
-    {
-      id: '3',
-      name: 'Bob Johnson',
-      party: 'Party B',
-      status: 'active',
-      voteNumber: '003',
-    },
-  ];
+      if (response && response.status === 200) {
+        setParties(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching parties:", error);
+      showToast("Failed to fetch parties. Please try again.", "error");
+    }
+  };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -121,12 +96,12 @@ const Parties: React.FC = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setPartyData({
-      name: '',
-      symbol: '',
+      name: "",
+      symbol: "",
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validate form data
     if (!partyData.name.trim()) {
       showToast("Please enter a party name.", "error");
@@ -138,22 +113,49 @@ const Parties: React.FC = () => {
       return;
     }
 
-    // TODO: Implement party creation logic
-    console.log('Creating party:', partyData);
-    showToast("Party created successfully!", "success");
-    handleCloseDialog();
+    try {
+      const response = await sendRequest({
+        url: `${baseUrl}/api/admin/party/create`,
+        options: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: { name: partyData.name, symbol: partyData.symbol },
+        },
+      });
+
+      if (response && response.status === 201) {
+        showToast("Party created successfully!", "success");
+        handleCloseDialog();
+        fetchParties(); // Refresh the list
+      }
+    } catch (error) {
+      console.error("Error creating party:", error);
+      showToast("Failed to create party. Please try again.", "error");
+    }
   };
 
-  const handleDeleteClick = (partyId: string) => {
+  const handleDeleteClick = (partyId: number) => {
     setPartyToDelete(partyId);
     setDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
+    if (!partyToDelete) return;
+
     try {
-      // TODO: Implement delete logic
-      console.log('Deleting party:', partyToDelete);
-      showToast("Party deleted successfully!", "success");
+      const response = await sendRequest({
+        url: `${baseUrl}/api/admin/party/${partyToDelete}`,
+        options: {
+          method: "DELETE",
+        },
+      });
+
+      if (response && response.status === 200) {
+        showToast("Party deleted successfully!", "success");
+        fetchParties(); // Refresh the list
+      }
     } catch (error) {
       console.error("Error deleting party:", error);
       showToast("Failed to delete party. Please try again.", "error");
@@ -163,15 +165,25 @@ const Parties: React.FC = () => {
     }
   };
 
+  const handlePartyClick = (party: Party) => {
+    setSelectedParty(party);
+    setTabValue(1);
+  };
+
+  const handleBackToList = () => {
+    setSelectedParty(null);
+    setTabValue(0);
+  };
+
   const PartyList: React.FC<{ parties: Party[] }> = ({ parties }) => (
     <List>
       {isLoading ? (
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
             py: 8,
           }}
         >
@@ -183,12 +195,12 @@ const Parties: React.FC = () => {
       ) : parties.length === 0 ? (
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
             py: 8,
-            color: 'text.secondary',
+            color: "text.secondary",
           }}
         >
           <Typography variant="h6" sx={{ mb: 1 }}>
@@ -200,230 +212,262 @@ const Parties: React.FC = () => {
         </Box>
       ) : (
         parties.map((party) => (
-          <Paper
+          <ListItem
             key={party.id}
-            elevation={1}
-            sx={{ 
-              mb: 2, 
-              p: 2,
-              cursor: 'pointer',
-              '&:hover': {
-                bgcolor: 'action.hover',
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              mb: 2,
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: "action.hover",
               },
             }}
-            onClick={() => setSelectedParty(party)}
+            onClick={() => handlePartyClick(party)}
           >
-            <ListItem
-              secondaryAction={
-                <IconButton 
-                  edge="end" 
-                  aria-label="delete"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteClick(party.id);
-                  }}
-                >
-                  <DeleteIcon />
-                </IconButton>
+            <ListItemAvatar>
+              <Avatar
+                src={party.symbol}
+                alt={party.name}
+                sx={{ width: 56, height: 56, marginRight: 2 }}
+              >
+                {party.name.charAt(0)}
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText
+              primary={
+                <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                  {party.name}
+                  <Chip
+                    label={party.status}
+                    size="small"
+                    color={party.status === "active" ? "success" : "default"}
+                  />
+                </Box>
               }
+              secondary={
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    {party.candidate_count || 0} candidates
+                  </Typography>
+                </Box>
+              }
+            />
+            <IconButton
+              edge="end"
+              aria-label="delete"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick(party.id);
+              }}
+              sx={{ color: "error.main" }}
             >
-              <ListItemAvatar>
-                <Avatar src={party.symbol} alt={party.name}>
-                  {party.name.charAt(0)}
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="h6">{party.name}</Typography>
-                    <Chip
-                      label={party.status.charAt(0).toUpperCase() + party.status.slice(1)}
-                      size="small"
-                      color={party.status === 'active' ? 'success' : 'default'}
-                    />
-                  </Box>
-                }
-              />
-            </ListItem>
-          </Paper>
+              <DeleteIcon />
+            </IconButton>
+          </ListItem>
         ))
       )}
     </List>
   );
 
   const PartyDetails: React.FC<{ party: Party }> = ({ party }) => {
-    const partyCandidates = candidates.filter((c) => c.party === party.name);
+    // Mock candidates data - in a real app, you'd fetch this from the API
+    const candidates: Candidate[] = [
+      {
+        id: 1,
+        name: "John Doe",
+        party: party.name,
+        status: "active",
+        vote_number: "001",
+      },
+      {
+        id: 2,
+        name: "Jane Smith",
+        party: party.name,
+        status: "inactive",
+        vote_number: "002",
+      },
+    ];
 
     return (
-      <Box sx={{ p: 3 }}>
-        {isLoading ? (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              py: 8,
-            }}
-          >
-            <CircularProgress size={40} sx={{ mb: 2 }} />
-            <Typography variant="body2" color="text.secondary">
-              Loading party details...
-            </Typography>
-          </Box>
-        ) : (
-          <>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-              <IconButton 
-                onClick={() => setSelectedParty(null)}
-                sx={{ mr: 2 }}
-              >
-                <ArrowBackIcon />
-              </IconButton>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar src={party.symbol} alt={party.name} sx={{ width: 56, height: 56 }}>
+      <Box>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+          <IconButton onClick={handleBackToList} sx={{ mr: 2 }}>
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography variant="h5" component="h2">
+            {party.name}
+          </Typography>
+        </Box>
+
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Party Information
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                <Avatar
+                  src={party.symbol}
+                  alt={party.name}
+                  sx={{ width: 80, height: 80, mr: 2 }}
+                >
                   {party.name.charAt(0)}
                 </Avatar>
                 <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 600 }}>
-                    {party.name}
-                  </Typography>
+                  <Typography variant="h6">{party.name}</Typography>
                   <Chip
-                    label={party.status.charAt(0).toUpperCase() + party.status.slice(1)}
-                    size="small"
-                    color={party.status === 'active' ? 'success' : 'default'}
+                    label={party.status}
+                    color={party.status === "active" ? "success" : "default"}
+                    sx={{ mt: 1 }}
                   />
                 </Box>
               </Box>
-            </Box>
+              <Typography variant="body2" color="text.secondary">
+                Symbol URL: {party.symbol}
+              </Typography>
+            </Paper>
+          </Grid>
 
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Candidates
-            </Typography>
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Statistics
+              </Typography>
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
+              >
+                <Typography>Total Candidates:</Typography>
+                <Typography variant="h6">
+                  {party.candidate_count || 0}
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography>Active Candidates:</Typography>
+                <Typography variant="h6">
+                  {candidates.filter((c) => c.status === "active").length}
+                </Typography>
+              </Box>
+            </Paper>
+          </Grid>
 
-            <Grid container spacing={2}>
-              {partyCandidates.map((candidate) => (
-                <Grid item xs={12} md={6} key={candidate.id}>
-                  <Paper sx={{ p: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="subtitle1">{candidate.name}</Typography>
-                      <Chip
-                        label={candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1)}
-                        size="small"
-                        color={candidate.status === 'active' ? 'success' : 'default'}
-                      />
-                    </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Vote Number: {candidate.voteNumber}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          </>
-        )}
+          <Grid item xs={12}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Candidates
+              </Typography>
+              <List>
+                {candidates.map((candidate) => (
+                  <ListItem key={candidate.id}>
+                    <ListItemText
+                      primary={candidate.name}
+                      secondary={`Vote Number: ${candidate.vote_number}`}
+                    />
+                    <Chip
+                      label={candidate.status}
+                      size="small"
+                      color={
+                        candidate.status === "active" ? "success" : "default"
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          </Grid>
+        </Grid>
       </Box>
     );
   };
 
   return (
-    <Box
-      sx={{
-        flex: 1,
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        p: 3,
-      }}
-    >
-      {!selectedParty ? (
-        <>
-          <Box sx={{ display: 'flex', justifyContent: 'end', mb: 3 }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleCreateParty}
-              disabled={isLoading}
-            >
-              Add Party
-            </Button>
-          </Box>
+    <Box sx={{ p: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h4" component="h1">
+          Party Management
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleCreateParty}
+          disabled={isLoading}
+        >
+          Add Party
+        </Button>
+      </Box>
 
-          <Paper sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              sx={{
-                borderBottom: 1,
-                borderColor: 'divider',
-                '& .MuiTab-root': {
-                  textTransform: 'none',
-                  fontWeight: 500,
-                },
-              }}
-            >
-              <Tab label="Active Parties" />
-              <Tab label="Inactive Parties" />
-            </Tabs>
-            <Box sx={{ p: 3, flexGrow: 1, overflow: 'auto' }}>
-              {tabValue === 0 && (
-                <PartyList
-                  parties={parties.filter((p) => p.status === 'active')}
-                />
-              )}
-              {tabValue === 1 && (
-                <PartyList
-                  parties={parties.filter((p) => p.status === 'inactive')}
-                />
-              )}
-            </Box>
-          </Paper>
-        </>
-      ) : (
-        <PartyDetails party={selectedParty} />
-      )}
+      <Paper sx={{ width: "100%" }}>
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          sx={{ borderBottom: 1, borderColor: "divider" }}
+        >
+          <Tab label="All Parties" />
+          {selectedParty && <Tab label={selectedParty.name} />}
+        </Tabs>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Add New Party</DialogTitle>
+        <Box sx={{ p: 3 }}>
+          {tabValue === 0 && <PartyList parties={parties} />}
+          {tabValue === 1 && selectedParty && (
+            <PartyDetails party={selectedParty} />
+          )}
+        </Box>
+      </Paper>
+
+      {/* Create Party Dialog */}
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Create New Party</DialogTitle>
         <DialogContent>
-          <Box sx={{ pt: 2 }}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Party Name"
-                  value={partyData.name}
-                  onChange={(e) =>
-                    setPartyData({ ...partyData, name: e.target.value })
-                  }
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Party Symbol URL"
-                  value={partyData.symbol}
-                  onChange={(e) =>
-                    setPartyData({ ...partyData, symbol: e.target.value })
-                  }
-                />
-              </Grid>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Party Name"
+                value={partyData.name}
+                onChange={(e) =>
+                  setPartyData({ ...partyData, name: e.target.value })
+                }
+                required
+              />
             </Grid>
-          </Box>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Party Symbol URL"
+                value={partyData.symbol}
+                onChange={(e) =>
+                  setPartyData({ ...partyData, symbol: e.target.value })
+                }
+                required
+                helperText="Enter the URL of the party symbol image"
+              />
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={!partyData.name || !partyData.symbol}
-          >
-            Add Party
+          <Button onClick={handleSubmit} variant="contained">
+            Create Party
           </Button>
         </DialogActions>
       </Dialog>
 
+      {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
@@ -431,14 +475,15 @@ const Parties: React.FC = () => {
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete this party? This action cannot be undone.
+            Are you sure you want to delete this party? This action cannot be
+            undone.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
             variant="contained"
           >
             Delete
@@ -449,4 +494,4 @@ const Parties: React.FC = () => {
   );
 };
 
-export default Parties; 
+export default Parties;

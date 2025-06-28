@@ -38,9 +38,12 @@ const AdminLogin: React.FC = () => {
 
     try {
       const response: {
-        message: string;
-        username: string;
-        accessToken: string;
+        status: number;
+        data: {
+          message: string;
+          username: string;
+          accessToken: string;
+        };
       } = await sendRequest({
         url: `${baseUrl}/api/admin/login`,
         options: {
@@ -50,7 +53,7 @@ const AdminLogin: React.FC = () => {
       });
 
       if (response) {
-        setAccessToken(response.accessToken);
+        setAccessToken(response.data.accessToken);
         navigate("/admin/dashboard");
       }
     } catch (err) {

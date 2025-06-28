@@ -34,6 +34,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { useToast } from '../../context/ToastContext';
 
 // Mock data for candidates
 interface Candidate {
@@ -62,6 +63,7 @@ interface Election {
 }
 
 const Candidates: React.FC = () => {
+  const { showToast } = useToast();
   const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -159,10 +161,17 @@ const Candidates: React.FC = () => {
   
   // Deletes the selected candidate
   const handleDeleteConfirm = () => {
-    // TODO: Implement delete logic
-    console.log('Deleting candidate:', candidateToDelete);
-    setDeleteDialogOpen(false);
-    setCandidateToDelete(null);
+    try {
+      // TODO: Implement delete logic
+      console.log('Deleting candidate:', candidateToDelete);
+      showToast("Candidate deleted successfully!", "success");
+    } catch (error) {
+      console.error("Error deleting candidate:", error);
+      showToast("Failed to delete candidate. Please try again.", "error");
+    } finally {
+      setDeleteDialogOpen(false);
+      setCandidateToDelete(null);
+    }
   };
 
   const handleCreateCandidate = () => {
@@ -200,12 +209,35 @@ const Candidates: React.FC = () => {
   };
 
   const handleSubmit = () => {
+    // Validate form data
+    if (!candidateData.name.trim()) {
+      showToast("Please enter a candidate name.", "error");
+      return;
+    }
+
+    if (!candidateData.email.trim()) {
+      showToast("Please enter a valid email address.", "error");
+      return;
+    }
+
+    if (!candidateData.mobileNumber.trim()) {
+      showToast("Please enter a mobile number.", "error");
+      return;
+    }
+
+    if (!candidateData.party.trim()) {
+      showToast("Please select a party.", "error");
+      return;
+    }
+
     if (isEditMode) {
       // TODO: Implement edit logic
       console.log('Updating candidate:', candidateData);
+      showToast("Candidate updated successfully!", "success");
     } else {
       // TODO: Implement create logic
       console.log('Creating candidate:', candidateData);
+      showToast("Candidate created successfully!", "success");
     }
     handleCloseDialog();
   };

@@ -5,7 +5,7 @@ import {
   generateAccessToken,
   validatePasswrd,
   validateUserName,
-} from "../../services/common/authService";
+} from "../../services/auth/authService";
 import { sendError, sendSuccess } from "../../utils/responseHandler";
 import { AdminUserType } from "../../common/types/adminTypes";
 import { getAdminUsersByUsername } from "../../services/admin/adminCommonServices";

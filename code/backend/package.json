@@ -23,6 +23,9 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.0",
+    "secrets.js": "^0.1.8",
+    "secrets.js-grempe": "^2.0.0",
+    "shamir-secret-sharing": "^0.0.4",
     "web3": "^4.16.0"
   },
   "devDependencies": {

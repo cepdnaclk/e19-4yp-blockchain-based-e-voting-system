@@ -37,12 +37,14 @@ import { useAuth } from "../context/AuthContect";
 import { useFetch } from "../hooks/useFetch";
 import { useNavigate } from "react-router-dom";
 import LoadingOverlay from "./LoadingOverlay";
+import Toast from "./Toast";
+import { ToastProvider, useToast } from "../context/ToastContext";
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 80;
 const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
 
-const AdminDashboard: React.FC = () => {
+const AdminDashboardContent: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("overview");
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -51,6 +53,7 @@ const AdminDashboard: React.FC = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { accessToken, setAccessToken } = useAuth();
   const { sendRequest } = useFetch({ setLoading: setIsLoading });
+  const { showToast, currentToast, dismissToast } = useToast();
   const theme = useTheme();
   const navigate = useNavigate();
 
@@ -78,11 +81,13 @@ const AdminDashboard: React.FC = () => {
           setAccessToken(null);
           navigate("/admin/login");
         } else if (response.status === 401) {
+          showToast("Unauthorized access. Please login again.", "error");
           navigate("/unautharized");
         }
       }
     } catch (err) {
       console.error("Logout Failed. Error : ", err);
+      showToast("Logout failed. Please try again.", "error");
     } finally {
       setIsLoggingOut(false);
     }
@@ -284,6 +289,7 @@ const AdminDashboard: React.FC = () => {
       }}
     >
       <LoadingOverlay isLoading={isLoggingOut} message="Logging out..." />
+      <Toast message={currentToast} onClose={dismissToast} />
       <AppBar
         position="fixed"
         sx={{
@@ -413,6 +419,14 @@ const AdminDashboard: React.FC = () => {
         </Box>
       </Box>
     </Box>
+  );
+};
+
+const AdminDashboard: React.FC = () => {
+  return (
+    <ToastProvider>
+      <AdminDashboardContent />
+    </ToastProvider>
   );
 };
 

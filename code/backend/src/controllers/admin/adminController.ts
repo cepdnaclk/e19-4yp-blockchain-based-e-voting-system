@@ -13,7 +13,7 @@ import { adminLoginService } from "../../services/admin/adminLoginService";
 import { adminLogoutService } from "../../services/admin/adminLogoutService";
 
 export const adminRegisterController = async (req: Request, res: Response) => {
-  const registrationAllowed = process.env.REGISTRATION_ALLOWED || false;
+  const registrationAllowed = process.env.ADMIN_REGISTRATION_ALLOWED || false;
   const { username, password } = req.body;
 
   if (registrationAllowed !== "true") {

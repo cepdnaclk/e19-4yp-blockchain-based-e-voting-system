@@ -28,7 +28,9 @@ export const useFetch = ({
         method: options.method || "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: accessTokenNew ? accessTokenNew : accessToken || "",
+          Authorization: accessTokenNew
+            ? "Bearer " + accessTokenNew
+            : "Bearer " + accessToken || "",
           ...options.headers,
         },
         credentials: "include",
@@ -58,11 +60,11 @@ export const useFetch = ({
             throw new Error("Failed to refresh token");
           }
 
-          const refreshData: { message: string; accessToken: string } =
+          const refreshData: { message: string; data: string } =
             await refreshResponse.json();
-          setAccessToken(refreshData.accessToken);
+          setAccessToken(refreshData.data);
 
-          response = await performRequest(refreshData.accessToken); // Retry the original request with the new token
+          response = await performRequest(refreshData.data); // Retry the original request with the new token
         } else {
           throw new Error(errorData || "Request failed");
         }

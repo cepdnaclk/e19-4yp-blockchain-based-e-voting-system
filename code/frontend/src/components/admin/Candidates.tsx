@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -24,111 +24,150 @@ import {
   InputLabel,
   CircularProgress,
   Chip,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Person as PersonIcon,
-} from '@mui/icons-material';
-import { DatePicker } from '@mui/x-date-pickers';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+} from "@mui/icons-material";
+import { DatePicker } from "@mui/x-date-pickers";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { useToast } from "../../context/ToastContext";
+import { useFetch } from "../../hooks/useFetch";
 
-// Mock data for candidates
 interface Candidate {
-  id: string;
+  id: number;
   name: string;
   birthday: Date;
   address: string;
-  mobileNumber: string;
+  mobile_number: string;
   email: string;
   photo: string;
-  party: string;
-  voteNumber: string;
-  electionId?: string;
-  status: 'active' | 'inactive';
+  party_id?: number;
+  party_name?: string;
+  party_symbol?: string;
+  vote_number: string;
+  election_id?: number;
+  election_name?: string;
+  status: "active" | "inactive";
 }
 
 interface Party {
-  id: string;
+  id: number;
   name: string;
 }
 
 interface Election {
-  id: string;
+  id: number;
   name: string;
-  status: 'active' | 'pending' | 'completed';
+  status: "active" | "pending" | "completed";
 }
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
+
 const Candidates: React.FC = () => {
+  const { showToast } = useToast();
   const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [candidateToDelete, setCandidateToDelete] = useState<string | null>(null);
+  const [candidateToDelete, setCandidateToDelete] = useState<number | null>(
+    null
+  );
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [parties, setParties] = useState<Party[]>([]);
+  const [elections, setElections] = useState<Election[]>([]);
   const [candidateData, setCandidateData] = useState({
-    id: '',
-    name: '',
+    id: 0,
+    name: "",
     birthday: new Date(),
-    address: '',
-    mobileNumber: '',
-    email: '',
-    photo: '',
-    party: '',
-    voteNumber: '',
-    electionId: '',
+    address: "",
+    mobileNumber: "",
+    email: "",
+    photo: "",
+    partyId: "",
+    voteNumber: "",
+    electionId: "",
   });
+  const { sendRequest } = useFetch({ setLoading: setIsLoading });
 
-  // Simulate loading data
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchCandidates();
+    fetchParties();
+    fetchElections();
   }, []);
 
-  // Mock data - replace with actual data from your backend
-  const parties: Party[] = [
-    { id: '1', name: 'Party A' },
-    { id: '2', name: 'Party B' },
-    { id: '3', name: 'Party C' },
-  ];
+  const fetchCandidates = async () => {
+    try {
+      const response = await sendRequest({
+        url: `${baseUrl}/api/admin/candidate/stats`,
+        options: {
+          method: "GET",
+        },
+      });
 
-  const elections: Election[] = [
-    { id: '1', name: 'Election 1', status: 'active' },
-    { id: '2', name: 'Election 2', status: 'pending' },
-    { id: '3', name: 'Election 3', status: 'completed' },
-  ];
+      if (response && response.status === 200) {
+        setCandidates(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching candidates:", error);
+      showToast("Failed to fetch candidates. Please try again.", "error");
+    }
+  };
 
-  const candidates: Candidate[] = [
-    {
-      id: '1',
-      name: 'John Doe',
-      birthday: new Date('1990-01-01'),
-      address: '123 Main St',
-      mobileNumber: '1234567890',
-      email: 'john@example.com',
-      photo: '',
-      party: 'Party A',
-      voteNumber: '001',
-      electionId: '1',
-      status: 'active',
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      birthday: new Date('1992-02-02'),
-      address: '456 Oak St',
-      mobileNumber: '0987654321',
-      email: 'jane@example.com',
-      photo: '',
-      party: 'Party B',
-      voteNumber: '002',
-      status: 'inactive',
-    },
-  ];
+  const fetchParties = async () => {
+    try {
+      const response = await sendRequest({
+        url: `${baseUrl}/api/admin/party/list`,
+        options: {
+          method: "GET",
+        },
+      });
+
+      if (response && response.status === 200) {
+        setParties(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching parties:", error);
+    }
+  };
+
+  const fetchElections = async () => {
+    try {
+      const response = await sendRequest({
+        url: `${baseUrl}/api/admin/election/list`,
+        options: {
+          method: "GET",
+        },
+      });
+
+      if (response && response.status === 200) {
+        const electionsData: Election[] = response.data.data.map(
+          (election: any) => ({
+            id: election.id,
+            name: election.name,
+            start_date_time: new Date(election.start_date_time),
+            end_date_time: new Date(election.end_date_time),
+            status:
+              new Date() > new Date(election.end_date_time)
+                ? "completed"
+                : new Date() < new Date(election.start_date_tine)
+                ? "pending"
+                : "active",
+            candidate_count: election.candidate_count || 0,
+            vote_count: election.vote_count || 0,
+          })
+        );
+        setElections(electionsData);
+      }
+    } catch (error) {
+      console.error("Error fetching elections:", error);
+    }
+  };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -140,44 +179,61 @@ const Candidates: React.FC = () => {
     setCandidateData({
       id: candidate.id,
       name: candidate.name,
-      birthday: candidate.birthday,
+      birthday: new Date(candidate.birthday),
       address: candidate.address,
-      mobileNumber: candidate.mobileNumber,
+      mobileNumber: candidate.mobile_number,
       email: candidate.email,
-      photo: candidate.photo,
-      party: candidate.party,
-      voteNumber: candidate.voteNumber,
-      electionId: candidate.electionId || '',
+      photo: candidate.photo || "",
+      partyId: candidate.party_id?.toString() || "",
+      voteNumber: candidate.vote_number,
+      electionId: candidate.election_id?.toString() || "",
     });
     setOpenDialog(true);
   };
 
-  const handleDeleteClick = (candidateId: string) => {
+  const handleDeleteClick = (candidateId: number) => {
     setCandidateToDelete(candidateId);
     setDeleteDialogOpen(true);
   };
-  
+
   // Deletes the selected candidate
-  const handleDeleteConfirm = () => {
-    // TODO: Implement delete logic
-    console.log('Deleting candidate:', candidateToDelete);
-    setDeleteDialogOpen(false);
-    setCandidateToDelete(null);
+  const handleDeleteConfirm = async () => {
+    if (!candidateToDelete) return;
+
+    try {
+      const response = await sendRequest({
+        url: `${baseUrl}/api/admin/candidate/${candidateToDelete}`,
+        options: {
+          method: "DELETE",
+        },
+      });
+
+      if (response && response.status === 200) {
+        showToast("Candidate deleted successfully!", "success");
+        fetchCandidates(); // Refresh the list
+      }
+    } catch (error) {
+      console.error("Error deleting candidate:", error);
+      showToast("Failed to delete candidate. Please try again.", "error");
+    } finally {
+      setDeleteDialogOpen(false);
+      setCandidateToDelete(null);
+    }
   };
 
   const handleCreateCandidate = () => {
     setIsEditMode(false);
     setCandidateData({
-      id: '',
-      name: '',
+      id: 0,
+      name: "",
       birthday: new Date(),
-      address: '',
-      mobileNumber: '',
-      email: '',
-      photo: '',
-      party: '',
-      voteNumber: '',
-      electionId: '',
+      address: "",
+      mobileNumber: "",
+      email: "",
+      photo: "",
+      partyId: "",
+      voteNumber: "",
+      electionId: "",
     });
     setOpenDialog(true);
   };
@@ -186,39 +242,108 @@ const Candidates: React.FC = () => {
     setOpenDialog(false);
     setIsEditMode(false);
     setCandidateData({
-      id: '',
-      name: '',
+      id: 0,
+      name: "",
       birthday: new Date(),
-      address: '',
-      mobileNumber: '',
-      email: '',
-      photo: '',
-      party: '',
-      voteNumber: '',
-      electionId: '',
+      address: "",
+      mobileNumber: "",
+      email: "",
+      photo: "",
+      partyId: "",
+      voteNumber: "",
+      electionId: "",
     });
   };
 
-  const handleSubmit = () => {
-    if (isEditMode) {
-      // TODO: Implement edit logic
-      console.log('Updating candidate:', candidateData);
-    } else {
-      // TODO: Implement create logic
-      console.log('Creating candidate:', candidateData);
+  const handleSubmit = async () => {
+    // Validate form data
+    if (!candidateData.name.trim()) {
+      showToast("Please enter a candidate name.", "error");
+      return;
     }
-    handleCloseDialog();
+
+    if (!candidateData.address.trim()) {
+      showToast("Please enter an address.", "error");
+      return;
+    }
+
+    if (!candidateData.mobileNumber.trim()) {
+      showToast("Please enter a mobile number.", "error");
+      return;
+    }
+
+    if (!candidateData.email.trim()) {
+      showToast("Please enter an email address.", "error");
+      return;
+    }
+
+    if (!candidateData.voteNumber.trim()) {
+      showToast("Please enter a vote number.", "error");
+      return;
+    }
+
+    try {
+      const requestData = {
+        name: candidateData.name,
+        birthday: candidateData.birthday.toISOString(),
+        address: candidateData.address,
+        mobileNumber: candidateData.mobileNumber,
+        email: candidateData.email,
+        photo: candidateData.photo || "",
+        partyId: candidateData.partyId ? candidateData.partyId : "",
+        voteNumber: candidateData.voteNumber,
+        electionId: candidateData.electionId ? candidateData.electionId : "",
+      };
+
+      const url = isEditMode
+        ? `${baseUrl}/api/admin/candidate/${candidateData.id}`
+        : `${baseUrl}/api/admin/candidate/create`;
+
+      const method = isEditMode ? "PUT" : "POST";
+
+      const response = await sendRequest({
+        url: url,
+        options: {
+          method: method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: { ...requestData },
+        },
+      });
+
+      if (response && (response.status === 201 || response.status === 200)) {
+        showToast(
+          isEditMode
+            ? "Candidate updated successfully!"
+            : "Candidate created successfully!",
+          "success"
+        );
+        handleCloseDialog();
+        fetchCandidates(); // Refresh the list
+      }
+    } catch (error) {
+      console.error("Error saving candidate:", error);
+      showToast(
+        `Failed to ${
+          isEditMode ? "update" : "create"
+        } candidate. Please try again.`,
+        "error"
+      );
+    }
   };
 
-  const CandidateList: React.FC<{ candidates: Candidate[] }> = ({ candidates }) => (
+  const CandidateList: React.FC<{ candidates: Candidate[] }> = ({
+    candidates,
+  }) => (
     <List>
       {isLoading ? (
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
             py: 8,
           }}
         >
@@ -230,12 +355,12 @@ const Candidates: React.FC = () => {
       ) : candidates.length === 0 ? (
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
             py: 8,
-            color: 'text.secondary',
+            color: "text.secondary",
           }}
         >
           <Typography variant="h6" sx={{ mb: 1 }}>
@@ -247,80 +372,92 @@ const Candidates: React.FC = () => {
         </Box>
       ) : (
         candidates.map((candidate) => (
-          <Paper
+          <ListItem
             key={candidate.id}
-            elevation={1}
-            sx={{ mb: 2, p: 2 }}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              mb: 2,
+              "&:hover": {
+                backgroundColor: "action.hover",
+              },
+            }}
           >
-            <ListItem
-              secondaryAction={
-                candidate.status === 'inactive' && (
-                  <Box>
-                    <IconButton 
-                      edge="end" 
-                      aria-label="edit" 
-                      sx={{ mr: 1 }}
-                      onClick={() => handleEditCandidate(candidate)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton 
-                      edge="end" 
-                      aria-label="delete"
-                      onClick={() => handleDeleteClick(candidate.id)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                )
+            <ListItemAvatar>
+              <Avatar
+                src={candidate.photo}
+                alt={candidate.name}
+                sx={{ width: 56, height: 56, marginRight: 2 }}
+              >
+                <PersonIcon />
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText
+              primary={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography variant="h6">{candidate.name}</Typography>
+                  <Chip
+                    label={candidate.status}
+                    size="small"
+                    color={
+                      candidate.status === "active" ? "success" : "default"
+                    }
+                  />
+                </Box>
               }
-            >
-              <ListItemAvatar>
-                <Avatar src={candidate.photo}>
-                  <PersonIcon />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="h6">{candidate.name}</Typography>
-                    <Chip
-                      label={candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1)}
-                      size="small"
-                      color={candidate.status === 'active' ? 'success' : 'default'}
-                    />
-                  </Box>
-                }
-                secondary={
-                  <Box sx={{ mt: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Party: {candidate.party}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Vote Number: {candidate.voteNumber}
-                    </Typography>
-                  </Box>
-                }
-              />
-            </ListItem>
-          </Paper>
+              secondary={
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Email: {candidate.email} | Mobile: {candidate.mobile_number}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Vote Number: {candidate.vote_number}
+                    {candidate.party_name &&
+                      ` | Party: ${candidate.party_name}`}
+                    {candidate.election_name &&
+                      ` | Election: ${candidate.election_name}`}
+                  </Typography>
+                </Box>
+              }
+            />
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <IconButton
+                edge="end"
+                aria-label="edit"
+                onClick={() => handleEditCandidate(candidate)}
+                sx={{ color: "primary.main" }}
+              >
+                <EditIcon />
+              </IconButton>
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={() => handleDeleteClick(candidate.id)}
+                sx={{ color: "error.main" }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Box>
+          </ListItem>
         ))
       )}
     </List>
   );
 
   return (
-    <Box
-      sx={{
-        flex: 1,
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        p: 3,
-      }}
-    >
-      <Box sx={{ display: 'flex', justifyContent: 'end', mb: 3 }}>
+    <Box sx={{ p: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h4" component="h1">
+          Candidate Management
+        </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -331,69 +468,75 @@ const Candidates: React.FC = () => {
         </Button>
       </Box>
 
-      <Paper sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <Paper sx={{ width: "100%" }}>
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
-          sx={{
-            borderBottom: 1,
-            borderColor: 'divider',
-            '& .MuiTab-root': {
-              textTransform: 'none',
-              fontWeight: 500,
-            },
-          }}
+          sx={{ borderBottom: 1, borderColor: "divider" }}
         >
+          <Tab label="All Candidates" />
           <Tab label="Active Candidates" />
           <Tab label="Inactive Candidates" />
         </Tabs>
-        <Box sx={{ p: 3, flexGrow: 1, overflow: 'auto' }}>
-          {tabValue === 0 && (
-            <CandidateList
-              candidates={candidates.filter((c) => c.status === 'active')}
-            />
-          )}
+
+        <Box sx={{ p: 3 }}>
+          {tabValue === 0 && <CandidateList candidates={candidates} />}
           {tabValue === 1 && (
             <CandidateList
-              candidates={candidates.filter((c) => c.status === 'inactive')}
+              candidates={candidates.filter((c) => c.status === "active")}
+            />
+          )}
+          {tabValue === 2 && (
+            <CandidateList
+              candidates={candidates.filter((c) => c.status === "inactive")}
             />
           )}
         </Box>
       </Paper>
 
-      <Dialog 
-        open={openDialog} 
-        onClose={handleCloseDialog} 
-        maxWidth="md" 
+      {/* Create/Edit Candidate Dialog */}
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="md"
         fullWidth
       >
         <DialogTitle>
-          {isEditMode ? 'Edit Candidate' : 'Add New Candidate'}
+          {isEditMode ? "Edit Candidate" : "Create New Candidate"}
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ pt: 2 }}>
-            <Grid container spacing={3}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Candidate Name"
+                  label="Full Name"
                   value={candidateData.name}
                   onChange={(e) =>
                     setCandidateData({ ...candidateData, name: e.target.value })
                   }
+                  required
                 />
               </Grid>
               <Grid item xs={12} md={6}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DatePicker
-                    label="Birthday"
-                    value={candidateData.birthday}
-                    onChange={(date: Date | null) =>
-                      setCandidateData({ ...candidateData, birthday: date || new Date() })
+                <DatePicker
+                  label="Birthday"
+                  value={candidateData.birthday}
+                  onChange={(newValue) => {
+                    if (newValue) {
+                      setCandidateData({
+                        ...candidateData,
+                        birthday: newValue,
+                      });
                     }
-                    slotProps={{ textField: { fullWidth: true } }}
-                  />
-                </LocalizationProvider>
+                  }}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      required: true,
+                    },
+                  }}
+                />
               </Grid>
               <Grid item xs={12}>
                 <TextField
@@ -401,8 +544,14 @@ const Candidates: React.FC = () => {
                   label="Address"
                   value={candidateData.address}
                   onChange={(e) =>
-                    setCandidateData({ ...candidateData, address: e.target.value })
+                    setCandidateData({
+                      ...candidateData,
+                      address: e.target.value,
+                    })
                   }
+                  multiline
+                  rows={2}
+                  required
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -411,8 +560,12 @@ const Candidates: React.FC = () => {
                   label="Mobile Number"
                   value={candidateData.mobileNumber}
                   onChange={(e) =>
-                    setCandidateData({ ...candidateData, mobileNumber: e.target.value })
+                    setCandidateData({
+                      ...candidateData,
+                      mobileNumber: e.target.value,
+                    })
                   }
+                  required
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -422,33 +575,71 @@ const Candidates: React.FC = () => {
                   type="email"
                   value={candidateData.email}
                   onChange={(e) =>
-                    setCandidateData({ ...candidateData, email: e.target.value })
+                    setCandidateData({
+                      ...candidateData,
+                      email: e.target.value,
+                    })
                   }
+                  required
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Photo URL"
                   value={candidateData.photo}
                   onChange={(e) =>
-                    setCandidateData({ ...candidateData, photo: e.target.value })
+                    setCandidateData({
+                      ...candidateData,
+                      photo: e.target.value,
+                    })
                   }
+                  helperText="Enter the URL of the candidate's photo"
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>Party</InputLabel>
                   <Select
-                    value={candidateData.party}
+                    value={candidateData.partyId}
                     label="Party"
                     onChange={(e) =>
-                      setCandidateData({ ...candidateData, party: e.target.value })
+                      setCandidateData({
+                        ...candidateData,
+                        partyId: e.target.value,
+                      })
                     }
                   >
+                    <MenuItem value="">
+                      <em>No Party</em>
+                    </MenuItem>
                     {parties.map((party) => (
-                      <MenuItem key={party.id} value={party.name}>
+                      <MenuItem key={party.id} value={party.id}>
                         {party.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Election</InputLabel>
+                  <Select
+                    value={candidateData.electionId}
+                    label="Election"
+                    onChange={(e) =>
+                      setCandidateData({
+                        ...candidateData,
+                        electionId: e.target.value,
+                      })
+                    }
+                  >
+                    <MenuItem value="">
+                      <em>No Election</em>
+                    </MenuItem>
+                    {elections.map((election) => (
+                      <MenuItem key={election.id} value={election.id}>
+                        {election.name}
                       </MenuItem>
                     ))}
                   </Select>
@@ -460,48 +651,26 @@ const Candidates: React.FC = () => {
                   label="Vote Number"
                   value={candidateData.voteNumber}
                   onChange={(e) =>
-                    setCandidateData({ ...candidateData, voteNumber: e.target.value })
+                    setCandidateData({
+                      ...candidateData,
+                      voteNumber: e.target.value,
+                    })
                   }
+                  required
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Attach to Election (Optional)</InputLabel>
-                  <Select
-                    value={candidateData.electionId}
-                    label="Attach to Election (Optional)"
-                    onChange={(e) =>
-                      setCandidateData({ ...candidateData, electionId: e.target.value })
-                    }
-                  >
-                    <MenuItem value="">
-                      <em>None</em>
-                    </MenuItem>
-                    {elections
-                      .filter((e) => e.status !== 'active')
-                      .map((election) => (
-                        <MenuItem key={election.id} value={election.id}>
-                          {election.name}
-                        </MenuItem>
-                      ))}
-                  </Select>
-                </FormControl>
-              </Grid>
             </Grid>
-          </Box>
+          </LocalizationProvider>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={!candidateData.name || !candidateData.party || !candidateData.voteNumber}
-          >
-            {isEditMode ? 'Update' : 'Add'} Candidate
+          <Button onClick={handleSubmit} variant="contained">
+            {isEditMode ? "Update" : "Create"} Candidate
           </Button>
         </DialogActions>
       </Dialog>
 
+      {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
@@ -509,16 +678,15 @@ const Candidates: React.FC = () => {
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete this candidate? This action cannot be undone.
+            Are you sure you want to delete this candidate? This action cannot
+            be undone.
           </Typography>
         </DialogContent>
-        <DialogActions
-      sx={{p: 2}}
-        >
+        <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
             variant="contained"
           >
             Delete
@@ -529,4 +697,4 @@ const Candidates: React.FC = () => {
   );
 };
 
-export default Candidates; 
+export default Candidates;

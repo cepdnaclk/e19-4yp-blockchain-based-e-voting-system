@@ -1,143 +1,120 @@
-import React, { useState } from 'react';
+import {
+  Add as AddIcon,
+  ArrowBack as ArrowBackIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+} from "@mui/icons-material";
 import {
   Box,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
   Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  TextField,
+  DialogContent,
+  DialogTitle,
   Grid,
+  IconButton,
+  LinearProgress,
   List,
   ListItem,
   ListItemText,
-  Chip,
-  IconButton,
+  Paper,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
   useTheme,
-  LinearProgress,
-  Card,
-  CardContent,
-  Divider,
-  CircularProgress,
-} from '@mui/material';
+} from "@mui/material";
+import { DatePicker, MobileTimePicker } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import React, { useState, useEffect } from "react";
 import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  ArrowBack as ArrowBackIcon,
-} from '@mui/icons-material';
-import { 
-  DateTimePicker,
-  DatePicker,
-  TimePicker,
-  MobileTimePicker,
-} from '@mui/x-date-pickers';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import {
-  LineChart,
+  CartesianGrid,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+} from "recharts";
+import { useFetch } from "../../hooks/useFetch";
+import { useToast } from "../../context/ToastContext";
 
 interface Election {
-  id: string;
+  id: number;
   name: string;
-  startDate: Date;
-  endDate: Date;
-  status: 'active' | 'pending' | 'completed';
-  totalVoters: number;
-  votesCast: number;
-  pollingStations: {
-    id: string;
-    name: string;
-    totalVoters: number;
-    votesCast: number;
-  }[];
-  votingTrend: {
-    time: string;
-    votes: number;
-  }[];
+  start_date_time: Date;
+  end_date_time: Date;
+  status?: "active" | "pending" | "completed";
+  candidate_count?: number;
+  vote_count?: number;
 }
+
+const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
 
 const Elections: React.FC = () => {
   const theme = useTheme();
+  const { showToast } = useToast();
   const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedElection, setSelectedElection] = useState<Election | null>(null);
+  const [selectedElection, setSelectedElection] = useState<Election | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
+  const [elections, setElections] = useState<Election[]>([]);
   const [electionData, setElectionData] = useState({
-    name: '',
+    name: "",
     startDate: new Date(),
     startTime: new Date(),
     endDate: new Date(),
     endTime: new Date(),
   });
+  const { sendRequest } = useFetch({
+    setLoading: setIsLoading,
+  });
 
-  // Simulate loading data
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+  // Fetch elections on component mount
+  useEffect(() => {
+    fetchElections();
   }, []);
 
-  // Mock data - replace with actual data from your backend
-  const elections: Election[] = [
-    {
-      id: '1',
-      name: 'Student Council Election 2024',
-      startDate: new Date('2024-03-01T09:00:00'),
-      endDate: new Date('2024-03-02T17:00:00'),
-      status: 'active',
-      totalVoters: 1000,
-      votesCast: 468,
-      pollingStations: [
-        { id: '1', name: 'Main Campus', totalVoters: 500, votesCast: 250 },
-        { id: '2', name: 'North Campus', totalVoters: 300, votesCast: 150 },
-        { id: '3', name: 'South Campus', totalVoters: 200, votesCast: 68 },
-      ],
-      votingTrend: [
-        { time: '09:00', votes: 50 },
-        { time: '10:00', votes: 120 },
-        { time: '11:00', votes: 200 },
-        { time: '12:00', votes: 300 },
-        { time: '13:00', votes: 350 },
-        { time: '14:00', votes: 400 },
-        { time: '15:00', votes: 468 },
-      ],
-    },
-    {
-      id: '2',
-      name: 'Class Representative Election 2024',
-      startDate: new Date('2024-02-15T09:00:00'),
-      endDate: new Date('2024-02-15T17:00:00'),
-      status: 'completed',
-      totalVoters: 500,
-      votesCast: 450,
-      pollingStations: [
-        { id: '1', name: 'Main Campus', totalVoters: 300, votesCast: 280 },
-        { id: '2', name: 'North Campus', totalVoters: 200, votesCast: 170 },
-      ],
-      votingTrend: [
-        { time: '09:00', votes: 100 },
-        { time: '10:00', votes: 200 },
-        { time: '11:00', votes: 300 },
-        { time: '12:00', votes: 350 },
-        { time: '13:00', votes: 400 },
-        { time: '14:00', votes: 425 },
-        { time: '15:00', votes: 450 },
-      ],
-    },
-  ];
+  const fetchElections = async () => {
+    try {
+      const response = await sendRequest({
+        url: `${baseUrl}/api/admin/election/list`,
+        options: {
+          method: "GET",
+        },
+      });
+
+      if (response && response.status === 200) {
+        const electionsData: Election[] = response.data.data.map(
+          (election: any) => ({
+            id: election.id,
+            name: election.name,
+            start_date_time: new Date(election.start_date_time),
+            end_date_time: new Date(election.end_date_time),
+            status:
+              new Date() > new Date(election.end_date_time)
+                ? "completed"
+                : new Date() < new Date(election.start_date_tine)
+                ? "pending"
+                : "active",
+            candidate_count: election.candidate_count || 0,
+            vote_count: election.vote_count || 0,
+          })
+        );
+        setElections(electionsData);
+      }
+    } catch (error) {
+      console.error("Error fetching elections:", error);
+      showToast("Failed to fetch elections. Please try again.", "error");
+    }
+  };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -150,7 +127,7 @@ const Elections: React.FC = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setElectionData({
-      name: '',
+      name: "",
       startDate: new Date(),
       startTime: new Date(),
       endDate: new Date(),
@@ -158,7 +135,18 @@ const Elections: React.FC = () => {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // Validate form data
+    if (!electionData.name.trim()) {
+      showToast("Please enter an election name.", "error");
+      return;
+    }
+
+    if (electionData.startDate >= electionData.endDate) {
+      showToast("End date must be after start date.", "error");
+      return;
+    }
+
     // Combine date and time for start and end
     const startDateTime = new Date(
       electionData.startDate.getFullYear(),
@@ -176,22 +164,39 @@ const Elections: React.FC = () => {
       electionData.endTime.getMinutes()
     );
 
-    // TODO: Implement election creation logic
-    console.log('Creating election:', {
-      name: electionData.name,
-      startDate: startDateTime,
-      endDate: endDateTime,
-    });
-    handleCloseDialog();
+    try {
+      setIsLoading(true);
+      const response: { status: number; data: { message: string } } =
+        await sendRequest({
+          url: `${baseUrl}/api/admin/election/create`,
+          options: {
+            method: "POST",
+            body: {
+              name: electionData.name,
+              startDateTime: startDateTime.toISOString(),
+              endDateTime: endDateTime.toISOString(),
+            },
+          },
+        });
+
+      if (response && response.status === 201) {
+        showToast("Election created successfully!", "success");
+        handleCloseDialog();
+      }
+    } catch {
+      showToast("Failed to create election. Please try again.", "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
+      case "active":
         return theme.palette.success.main;
-      case 'pending':
+      case "pending":
         return theme.palette.warning.main;
-      case 'completed':
+      case "completed":
         return theme.palette.info.main;
       default:
         return theme.palette.grey[500];
@@ -203,10 +208,10 @@ const Elections: React.FC = () => {
       {isLoading ? (
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
             py: 8,
           }}
         >
@@ -218,12 +223,12 @@ const Elections: React.FC = () => {
       ) : elections.length === 0 ? (
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
             py: 8,
-            color: 'text.secondary',
+            color: "text.secondary",
           }}
         >
           <Typography variant="h6" sx={{ mb: 1 }}>
@@ -238,55 +243,57 @@ const Elections: React.FC = () => {
           <Paper
             key={election.id}
             elevation={1}
-            sx={{ 
-              mb: 2, 
-              p: 2, 
-              cursor: 'pointer',
-              '&:hover': { 
-                bgcolor: 'action.hover',
-                transform: 'translateY(-2px)',
-                transition: 'transform 0.2s ease-in-out',
-              } 
+            sx={{
+              mb: 2,
+              p: 2,
+              cursor: "pointer",
+              "&:hover": {
+                bgcolor: "action.hover",
+                transform: "translateY(-2px)",
+                transition: "transform 0.2s ease-in-out",
+              },
             }}
             onClick={() => setSelectedElection(election)}
           >
             <ListItem
               secondaryAction={
-                  election.status === 'pending' && 
-                  (<Box>
-                  <IconButton edge="end" aria-label="edit" sx={{ mr: 1 }}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton edge="end" aria-label="delete">
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>)
-          
-            }
-            > 
+                election.status === "pending" && (
+                  <Box>
+                    <IconButton edge="end" aria-label="edit" sx={{ mr: 1 }}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton edge="end" aria-label="delete">
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                )
+              }
+            >
               <ListItemText
                 primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Typography variant="h6">{election.name}</Typography>
                     <Chip
-                      label={election.status.charAt(0).toUpperCase() + election.status.slice(1)}
+                      label={
+                        election.status?.charAt(0).toUpperCase() +
+                        election.status?.slice(1)
+                      }
                       size="medium"
                       sx={{
-                        bgcolor: `${getStatusColor(election.status)}15`,
-                        color: getStatusColor(election.status),
+                        bgcolor: `${getStatusColor(election.status || "")}15`,
+                        color: getStatusColor(election.status || ""),
                         fontWeight: 600,
                       }}
-                      
                     />
                   </Box>
                 }
                 secondary={
                   <Box sx={{ mt: 1 }}>
                     <Typography variant="body2" color="text.secondary">
-                      Start: {election.startDate.toLocaleString()}
+                      Start: {election.start_date_time.toLocaleString()}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      End: {election.endDate.toLocaleString()}
+                      End: {election.end_date_time.toLocaleString()}
                     </Typography>
                   </Box>
                 }
@@ -303,10 +310,10 @@ const Elections: React.FC = () => {
       {isLoading ? (
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
             py: 8,
           }}
         >
@@ -317,8 +324,8 @@ const Elections: React.FC = () => {
         </Box>
       ) : (
         <>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <IconButton 
+          <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+            <IconButton
               onClick={() => setSelectedElection(null)}
               sx={{ mr: 2 }}
             >
@@ -337,17 +344,27 @@ const Elections: React.FC = () => {
                   <Typography variant="h6" gutterBottom>
                     Overall Voting Progress
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
-                      {election.votesCast} / {election.totalVoters} votes
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mr: 2 }}
+                    >
+                      {election.vote_count} / {election.candidate_count} votes
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {((election.votesCast / election.totalVoters) * 100).toFixed(1)}%
+                      {(
+                        (election.vote_count / election.candidate_count) *
+                        100
+                      ).toFixed(1)}
+                      %
                     </Typography>
                   </Box>
                   <LinearProgress
                     variant="determinate"
-                    value={(election.votesCast / election.totalVoters) * 100}
+                    value={
+                      (election.vote_count / election.candidate_count) * 100
+                    }
                     sx={{ height: 10, borderRadius: 5 }}
                   />
                 </CardContent>
@@ -361,21 +378,7 @@ const Elections: React.FC = () => {
                   <Typography variant="h6" gutterBottom>
                     Polling Station Progress
                   </Typography>
-                  {election.pollingStations.map((station) => (
-                    <Box key={station.id} sx={{ mb: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2">{station.name}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {station.votesCast} / {station.totalVoters} votes
-                        </Typography>
-                      </Box>
-                      <LinearProgress
-                        variant="determinate"
-                        value={(station.votesCast / station.totalVoters) * 100}
-                        sx={{ height: 8, borderRadius: 4 }}
-                      />
-                    </Box>
-                  ))}
+                  {/* Add polling station progress display logic here */}
                 </CardContent>
               </Card>
             </Grid>
@@ -389,7 +392,7 @@ const Elections: React.FC = () => {
                   </Typography>
                   <Box sx={{ height: 300 }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={election.votingTrend}>
+                      <LineChart data={[]}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="time" />
                         <YAxis />
@@ -416,19 +419,19 @@ const Elections: React.FC = () => {
     <Box
       sx={{
         flex: 1,
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
         p: 3,
-        '& button:focus, & button:focus-visible': {
-          outline: 'none',
+        "& button:focus, & button:focus-visible": {
+          outline: "none",
         },
       }}
     >
       {!selectedElection ? (
         <>
-          <Box sx={{ display: 'flex', justifyContent: 'end', mb: 3 }}>
+          <Box sx={{ display: "flex", justifyContent: "end", mb: 3 }}>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
@@ -439,20 +442,22 @@ const Elections: React.FC = () => {
             </Button>
           </Box>
 
-          <Paper sx={{ 
-            flexGrow: 1, 
-            display: 'flex', 
-            flexDirection: 'column',
-            overflow: 'hidden'
-          }}>
+          <Paper
+            sx={{
+              flexGrow: 1,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
             <Tabs
               value={tabValue}
               onChange={handleTabChange}
               sx={{
                 borderBottom: 1,
-                borderColor: 'divider',
-                '& .MuiTab-root': {
-                  textTransform: 'none',
+                borderColor: "divider",
+                "& .MuiTab-root": {
+                  textTransform: "none",
                   fontWeight: 500,
                 },
               }}
@@ -461,20 +466,20 @@ const Elections: React.FC = () => {
               <Tab label="Pending Elections" />
               <Tab label="Completed Elections" />
             </Tabs>
-            <Box sx={{ p: 3, flexGrow: 1, overflow: 'auto' }}>
+            <Box sx={{ p: 3, flexGrow: 1, overflow: "auto" }}>
               {tabValue === 0 && (
                 <ElectionList
-                  elections={elections.filter((e) => e.status === 'active')}
+                  elections={elections.filter((e) => e.status === "active")}
                 />
               )}
               {tabValue === 1 && (
                 <ElectionList
-                  elections={elections.filter((e) => e.status === 'pending')}
+                  elections={elections.filter((e) => e.status === "pending")}
                 />
               )}
               {tabValue === 2 && (
                 <ElectionList
-                  elections={elections.filter((e) => e.status === 'completed')}
+                  elections={elections.filter((e) => e.status === "completed")}
                 />
               )}
             </Box>
@@ -484,7 +489,12 @@ const Elections: React.FC = () => {
         <ElectionDetails election={selectedElection} />
       )}
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Create New Election</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
@@ -510,7 +520,10 @@ const Elections: React.FC = () => {
                         label="Start Date"
                         value={electionData.startDate}
                         onChange={(date: Date | null) =>
-                          setElectionData({ ...electionData, startDate: date || new Date() })
+                          setElectionData({
+                            ...electionData,
+                            startDate: date || new Date(),
+                          })
                         }
                         slotProps={{ textField: { fullWidth: true } }}
                       />
@@ -522,7 +535,10 @@ const Elections: React.FC = () => {
                         label="Start Time"
                         value={electionData.startTime}
                         onChange={(time: Date | null) =>
-                          setElectionData({ ...electionData, startTime: time || new Date() })
+                          setElectionData({
+                            ...electionData,
+                            startTime: time || new Date(),
+                          })
                         }
                         slotProps={{ textField: { fullWidth: true } }}
                       />
@@ -541,7 +557,10 @@ const Elections: React.FC = () => {
                         label="End Date"
                         value={electionData.endDate}
                         onChange={(date: Date | null) =>
-                          setElectionData({ ...electionData, endDate: date || new Date() })
+                          setElectionData({
+                            ...electionData,
+                            endDate: date || new Date(),
+                          })
                         }
                         slotProps={{ textField: { fullWidth: true } }}
                       />
@@ -553,7 +572,10 @@ const Elections: React.FC = () => {
                         label="End Time"
                         value={electionData.endTime}
                         onChange={(time: Date | null) =>
-                          setElectionData({ ...electionData, endTime: time || new Date() })
+                          setElectionData({
+                            ...electionData,
+                            endTime: time || new Date(),
+                          })
                         }
                         slotProps={{ textField: { fullWidth: true } }}
                       />
@@ -579,4 +601,4 @@ const Elections: React.FC = () => {
   );
 };
 
-export default Elections; 
+export default Elections;

@@ -58,8 +58,14 @@ CORS_ORIGIN=http://localhost:5173                     # Frontend origin allowed 
 # DB Migration Configuration
 DATABASE_URL=postgres://dasun:dasun@localhost:5432/voting_system  # Connection string for migration tools
 
-# User Registration
-REGISTRATION_ALLOWED=true                             # Toggle user registration feature
+# Admin Registration
+ADMIN_REGISTRATION_ALLOWED=true                             # Toggle
+
+# Voter Registration Allowed
+VOTER_REGISTRATION_ALLOWED=true  # Allow voter registration
+
+# Cryptography
+RANDOM_STRING_LENGTH=128
 
 ```
 

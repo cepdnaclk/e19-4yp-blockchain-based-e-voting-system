@@ -1,55 +1,62 @@
 {
-  "name": "first-network-org1",
-  "version": "1.0.0",
-  "client": {
-    "organization": "Org1",
-    "connection": {
-      "timeout": {
-        "peer": {
-          "endorser": "300"
+    "name": "first-network-org1",
+    "version": "1.0.0",
+    "client": {
+        "organization": "Org1",
+        "connection": {
+            "timeout": {
+                "peer": {
+                    "endorser": "300"
+                }
+            }
         }
-      }
-    }
-  },
-  "organizations": {
-    "Org1": {
-      "mspid": "Org1MSP",
-      "peers": ["peer0.org1.example.com", "peer1.org1.example.com"],
-      "certificateAuthorities": ["ca.org1.example.com"]
-    }
-  },
-  "peers": {
-    "peer0.org1.example.com": {
-      "url": "grpcs://localhost:7051",
-      "tlsCACerts": {
-        "pem": "-----BEGIN CERTIFICATE-----\nMIICVzCCAf2gAwIBAgIQZZqRlTQZikHFuxa0HpQKRTAKBggqhkjOPQQDAjB2MQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEfMB0GA1UEAxMWdGxz\nY2Eub3JnMS5leGFtcGxlLmNvbTAeFw0yNTA3MDcxOTA3MDBaFw0zNTA3MDUxOTA3\nMDBaMHYxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQH\nEw1TYW4gRnJhbmNpc2NvMRkwFwYDVQQKExBvcmcxLmV4YW1wbGUuY29tMR8wHQYD\nVQQDExZ0bHNjYS5vcmcxLmV4YW1wbGUuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0D\nAQcDQgAERApR/Yl+M0r17jjX65oaal0ErkZgJD7G9yI0gFnu9GldqvTH8OHJiWP2\n/FK4tFfzO0DsYdZ0IM+rnkTrrsO2maNtMGswDgYDVR0PAQH/BAQDAgGmMB0GA1Ud\nJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MCkGA1Ud\nDgQiBCA/BcbIs9MQEXxdmoVWVi0NeNwmMVm7bhaJ8AClxq0iqjAKBggqhkjOPQQD\nAgNIADBFAiEAmn8djvS1RvKU2GO3wveBK4tZLy4WTChuOy3ax0aolN0CICka7WyT\n2btsYL7IKehc2A7XjPehrPIlweRfXb57UZE2\n-----END CERTIFICATE-----\n"
-      },
-      "grpcOptions": {
-        "ssl-target-name-override": "peer0.org1.example.com",
-        "hostnameOverride": "peer0.org1.example.com"
-      }
     },
-    "peer1.org1.example.com": {
-      "url": "grpcs://localhost:8051",
-      "tlsCACerts": {
-        "pem": "-----BEGIN CERTIFICATE-----\nMIICVzCCAf2gAwIBAgIQZZqRlTQZikHFuxa0HpQKRTAKBggqhkjOPQQDAjB2MQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEfMB0GA1UEAxMWdGxz\nY2Eub3JnMS5leGFtcGxlLmNvbTAeFw0yNTA3MDcxOTA3MDBaFw0zNTA3MDUxOTA3\nMDBaMHYxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQH\nEw1TYW4gRnJhbmNpc2NvMRkwFwYDVQQKExBvcmcxLmV4YW1wbGUuY29tMR8wHQYD\nVQQDExZ0bHNjYS5vcmcxLmV4YW1wbGUuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0D\nAQcDQgAERApR/Yl+M0r17jjX65oaal0ErkZgJD7G9yI0gFnu9GldqvTH8OHJiWP2\n/FK4tFfzO0DsYdZ0IM+rnkTrrsO2maNtMGswDgYDVR0PAQH/BAQDAgGmMB0GA1Ud\nJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MCkGA1Ud\nDgQiBCA/BcbIs9MQEXxdmoVWVi0NeNwmMVm7bhaJ8AClxq0iqjAKBggqhkjOPQQD\nAgNIADBFAiEAmn8djvS1RvKU2GO3wveBK4tZLy4WTChuOy3ax0aolN0CICka7WyT\n2btsYL7IKehc2A7XjPehrPIlweRfXb57UZE2\n-----END CERTIFICATE-----\n"
-      },
-      "grpcOptions": {
-        "ssl-target-name-override": "peer1.org1.example.com",
-        "hostnameOverride": "peer1.org1.example.com"
-      }
+    "organizations": {
+        "Org1": {
+            "mspid": "Org1MSP",
+            "peers": [
+                "peer0.org1.example.com",
+                "peer1.org1.example.com"
+            ],
+            "certificateAuthorities": [
+                "ca.org1.example.com"
+            ]
+        }
+    },
+    "peers": {
+        "peer0.org1.example.com": {
+            "url": "grpcs://localhost:7051",
+            "tlsCACerts": {
+                "pem": "-----BEGIN CERTIFICATE-----\nMIICVzCCAf2gAwIBAgIQH7xANtuk+h7fe9htMbBnBjAKBggqhkjOPQQDAjB2MQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEfMB0GA1UEAxMWdGxz\nY2Eub3JnMS5leGFtcGxlLmNvbTAeFw0yNTA3MDkxOTQwMDBaFw0zNTA3MDcxOTQw\nMDBaMHYxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQH\nEw1TYW4gRnJhbmNpc2NvMRkwFwYDVQQKExBvcmcxLmV4YW1wbGUuY29tMR8wHQYD\nVQQDExZ0bHNjYS5vcmcxLmV4YW1wbGUuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0D\nAQcDQgAEwjzulafkzvUC0U4TXsv1MlfPkJLugvE725CIXf3flwh/fJ+Hbvvg3xnR\nc2KYC4Jtk55YlY2GuZdfxCBfzq/NZaNtMGswDgYDVR0PAQH/BAQDAgGmMB0GA1Ud\nJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MCkGA1Ud\nDgQiBCBas4QgyJ0fgQ0rG+EcBbkl2y/h7vDF0axKSJaFacAEgjAKBggqhkjOPQQD\nAgNIADBFAiEAt6b0BspuNDqGfkBhBs6PosU+NA4am6INrgBwxoLAFhYCIFlSvXLv\nNw8R9CRVsXPP34B3ww8KMAEezJk3GlMcNNgk\n-----END CERTIFICATE-----\n"
+            },
+            "grpcOptions": {
+                "ssl-target-name-override": "peer0.org1.example.com",
+                "hostnameOverride": "peer0.org1.example.com"
+            }
+        },
+	"peer1.org1.example.com": {
+            "url": "grpcs://localhost:8051",
+            "tlsCACerts": {
+                "pem": "-----BEGIN CERTIFICATE-----\nMIICVzCCAf2gAwIBAgIQH7xANtuk+h7fe9htMbBnBjAKBggqhkjOPQQDAjB2MQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEfMB0GA1UEAxMWdGxz\nY2Eub3JnMS5leGFtcGxlLmNvbTAeFw0yNTA3MDkxOTQwMDBaFw0zNTA3MDcxOTQw\nMDBaMHYxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQH\nEw1TYW4gRnJhbmNpc2NvMRkwFwYDVQQKExBvcmcxLmV4YW1wbGUuY29tMR8wHQYD\nVQQDExZ0bHNjYS5vcmcxLmV4YW1wbGUuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0D\nAQcDQgAEwjzulafkzvUC0U4TXsv1MlfPkJLugvE725CIXf3flwh/fJ+Hbvvg3xnR\nc2KYC4Jtk55YlY2GuZdfxCBfzq/NZaNtMGswDgYDVR0PAQH/BAQDAgGmMB0GA1Ud\nJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MCkGA1Ud\nDgQiBCBas4QgyJ0fgQ0rG+EcBbkl2y/h7vDF0axKSJaFacAEgjAKBggqhkjOPQQD\nAgNIADBFAiEAt6b0BspuNDqGfkBhBs6PosU+NA4am6INrgBwxoLAFhYCIFlSvXLv\nNw8R9CRVsXPP34B3ww8KMAEezJk3GlMcNNgk\n-----END CERTIFICATE-----\n"
+            },
+            "grpcOptions": {
+                "ssl-target-name-override": "peer1.org1.example.com",
+                "hostnameOverride": "peer1.org1.example.com"
+            }
+        }
+
+	
+    },
+    "certificateAuthorities": {
+        "ca.org1.example.com": {
+            "url": "https://localhost:7054",
+            "caName": "ca.org1.example.com",
+            "tlsCACerts": {
+                "pem": "-----BEGIN CERTIFICATE-----\nMIICVzCCAf2gAwIBAgIQH7xANtuk+h7fe9htMbBnBjAKBggqhkjOPQQDAjB2MQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEfMB0GA1UEAxMWdGxz\nY2Eub3JnMS5leGFtcGxlLmNvbTAeFw0yNTA3MDkxOTQwMDBaFw0zNTA3MDcxOTQw\nMDBaMHYxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQH\nEw1TYW4gRnJhbmNpc2NvMRkwFwYDVQQKExBvcmcxLmV4YW1wbGUuY29tMR8wHQYD\nVQQDExZ0bHNjYS5vcmcxLmV4YW1wbGUuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0D\nAQcDQgAEwjzulafkzvUC0U4TXsv1MlfPkJLugvE725CIXf3flwh/fJ+Hbvvg3xnR\nc2KYC4Jtk55YlY2GuZdfxCBfzq/NZaNtMGswDgYDVR0PAQH/BAQDAgGmMB0GA1Ud\nJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MCkGA1Ud\nDgQiBCBas4QgyJ0fgQ0rG+EcBbkl2y/h7vDF0axKSJaFacAEgjAKBggqhkjOPQQD\nAgNIADBFAiEAt6b0BspuNDqGfkBhBs6PosU+NA4am6INrgBwxoLAFhYCIFlSvXLv\nNw8R9CRVsXPP34B3ww8KMAEezJk3GlMcNNgk\n-----END CERTIFICATE-----\n"
+            },
+            "httpOptions": {
+                "verify": false
+            }
+        }
     }
-  },
-  "certificateAuthorities": {
-    "ca.org1.example.com": {
-      "url": "https://localhost:7054",
-      "caName": "ca.org1.example.com",
-      "tlsCACerts": {
-        "pem": "-----BEGIN CERTIFICATE-----\nMIICVzCCAf2gAwIBAgIQZZqRlTQZikHFuxa0HpQKRTAKBggqhkjOPQQDAjB2MQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEfMB0GA1UEAxMWdGxz\nY2Eub3JnMS5leGFtcGxlLmNvbTAeFw0yNTA3MDcxOTA3MDBaFw0zNTA3MDUxOTA3\nMDBaMHYxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQH\nEw1TYW4gRnJhbmNpc2NvMRkwFwYDVQQKExBvcmcxLmV4YW1wbGUuY29tMR8wHQYD\nVQQDExZ0bHNjYS5vcmcxLmV4YW1wbGUuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0D\nAQcDQgAERApR/Yl+M0r17jjX65oaal0ErkZgJD7G9yI0gFnu9GldqvTH8OHJiWP2\n/FK4tFfzO0DsYdZ0IM+rnkTrrsO2maNtMGswDgYDVR0PAQH/BAQDAgGmMB0GA1Ud\nJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MCkGA1Ud\nDgQiBCA/BcbIs9MQEXxdmoVWVi0NeNwmMVm7bhaJ8AClxq0iqjAKBggqhkjOPQQD\nAgNIADBFAiEAmn8djvS1RvKU2GO3wveBK4tZLy4WTChuOy3ax0aolN0CICka7WyT\n2btsYL7IKehc2A7XjPehrPIlweRfXb57UZE2\n-----END CERTIFICATE-----\n"
-      },
-      "httpOptions": {
-        "verify": false
-      }
-    }
-  }
 }

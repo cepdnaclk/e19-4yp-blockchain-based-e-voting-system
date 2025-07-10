@@ -27,6 +27,7 @@ Navigate to the `artifacts/channel` directory and run the script:
 
 ```bash
 cd artifacts/channel
+dos2unix ./create-artifacts.sh
 ./create-artifacts.sh
 ```
 ````
@@ -45,6 +46,7 @@ Go back to the project root directory and create the channel:
 
 ```bash
 cd ../../..
+dos2unix ./createChannel.sh
 ./createChannel.sh
 ```
 
@@ -65,6 +67,7 @@ From the project root directory, run the following script step by step:
 
 ```bash
 cd ../../..
+dos2unix ./deployChaincode.sh
 ./deployChaincode.sh
 ```
 
@@ -76,6 +79,7 @@ Navigate to the `api-2.0/config` folder:
 
 ```bash
 cd api-2.0/config
+dos2unix ./generate-ccp.sh
 ./generate-ccp.sh
 ```
 
@@ -87,6 +91,15 @@ From the `api-2.0` directory:
 cd ..
 npm install
 npm run dev
+```
+
+### 8. Start the hypeledger explorer
+
+From the `Explorer` directory:
+
+```bash
+docker-compose up -d
+Use localhost:8080 to inspect
 ```
 
 ---

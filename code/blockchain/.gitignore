@@ -175,3 +175,5 @@ artifacts/channel/Org2MSPanchors.tx
 channel-artifacts/mychannel.block
 
 log.txt
+
+api-2.0/package-lock.json

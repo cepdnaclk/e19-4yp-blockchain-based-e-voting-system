@@ -19,3 +19,7 @@ Steps ( Watch 17th vid)
 4. From root,
    - Run, deployChaincode.sh step by step\
    - 15 th video
+5. Form api-2.0 -> config
+   - Run generate-ccp.sh
+6. From api-2.0
+   - Run npm run dev

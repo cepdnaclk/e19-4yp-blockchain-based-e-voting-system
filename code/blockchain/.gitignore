@@ -173,3 +173,5 @@ artifacts/channel/Org1MSPanchors.tx
 artifacts/channel/Org2MSPanchors.tx
 
 channel-artifacts/mychannel.block
+
+log.txt

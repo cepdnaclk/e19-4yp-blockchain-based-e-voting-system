@@ -165,4 +165,5 @@ artifacts/ca-operations/clients
 artifacts/ca-operations/fabric-ca
 
 artifacts/src/vendor
+artifacts/src/go.sum
 artifacts/channel/crypto-config

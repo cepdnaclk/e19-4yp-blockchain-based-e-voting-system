@@ -1,0 +1,61 @@
+OrdererOrgs:
+  # ---------------------------------------------------------------------------
+  # Orderer
+  # ---------------------------------------------------------------------------
+  - Name: Orderer # Name of the orderer organization
+    Domain: example.com # Domain of the orderer organization
+    EnableNodeOUs: true
+
+    # ---------------------------------------------------------------------------
+    # "Specs" - See PeerOrgs below for complete description
+    # ---------------------------------------------------------------------------
+    Specs:
+      - Hostname: orderer # Hostname of the orderer node
+        SANS:
+          - "localhost"
+          - "127.0.0.1"
+      - Hostname: orderer2 # Hostname of the second orderer node
+        SANS:
+          - "localhost"
+          - "127.0.0.1"
+      - Hostname: orderer3 # Hostname of the third orderer node
+        SANS:
+          - "localhost"
+          - "127.0.0.1"
+
+# ---------------------------------------------------------------------------
+# "PeerOrgs" - Definition of organizations managing peer nodes
+# ---------------------------------------------------------------------------
+PeerOrgs:
+  # ---------------------------------------------------------------------------
+  # Org1
+  # ---------------------------------------------------------------------------
+  # Here we are defining two peer organizations, Org1 and Org2.
+  # Org1 has two peers and one user, while Org2 also has two peers and one user along with default admin user.
+  - Name: Org1
+    Domain: org1.example.com
+    EnableNodeOUs: true
+
+    Template:
+      Count: 2 # Peer count
+      # Start: 5
+      # Hostname: {{.Prefix}}{{.Index}} # default
+      SANS:
+        - "localhost"
+
+    Users:
+      Count: 1 # User count
+
+  - Name: Org2
+    Domain: org2.example.com
+    EnableNodeOUs: true
+
+    Template:
+      Count: 2
+      # Start: 5
+      # Hostname: {{.Prefix}}{{.Index}} # default
+      SANS:
+        - "localhost"
+
+    Users:
+      Count: 1

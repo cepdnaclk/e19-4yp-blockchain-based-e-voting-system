@@ -1,7 +1,7 @@
 
 chmod -R 0755 ./crypto-config
 # Delete existing artifacts
-rm -rf ./crypto-config
+rm -rf ./crypto-config/ordererOrganizations ./crypto-config/peerOrganizations
 rm genesis.block mychannel.tx
 rm -rf ../../channel-artifacts/*
 

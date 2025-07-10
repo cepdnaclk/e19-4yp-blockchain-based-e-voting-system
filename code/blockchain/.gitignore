@@ -163,3 +163,6 @@ Explorer/crypto-config
 artifacts/src/github.com/vf
 artifacts/ca-operations/clients
 artifacts/ca-operations/fabric-ca
+
+artifacts/src/vendor
+artifacts/channel/crypto-config

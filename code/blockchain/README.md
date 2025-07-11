@@ -34,7 +34,7 @@ dos2unix ./create-artifacts.sh
 
 ### 2. Start the Docker Network
 
-From the same `channel` directory, start the Docker containers:
+From the `artifacts` directory, start the Docker containers:
 
 ```bash
 docker-compose up -d

@@ -1,5 +1,4 @@
-export interface blockchainResponseTypes {
-  status: number;
+export interface blockchainResponseType {
   result?: resultType[];
   error?: string;
   errorData?: Date;
@@ -7,10 +6,8 @@ export interface blockchainResponseTypes {
 
 interface resultType {
   TxId: string;
-  value: {
-    key: string;
-    hash?: string;
-  };
+  key: string;
+  value: string;
   timestamp: Date;
   isDeleted: boolean;
 }

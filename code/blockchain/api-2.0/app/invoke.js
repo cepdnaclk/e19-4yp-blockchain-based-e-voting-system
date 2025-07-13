@@ -97,7 +97,6 @@ const invokeTransaction = async (
       message: message,
       result,
     };
-
     return response;
   } catch (error) {
     console.log(`Getting error: ${error}`);

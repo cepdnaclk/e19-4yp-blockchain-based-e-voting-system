@@ -19,7 +19,7 @@ type SmartContract struct {
 // Data :  Define the data structure, with 2 properties.  Structure tags are used by encoding/json library
 type Data struct {
 	Key   string `json:"key"`
-	Hash  string `json:"hash"`
+	Value  string `json:"value"`
 }
 
 // Init ;  Method for initializing smart contract
@@ -73,7 +73,7 @@ func (s *SmartContract) postHash(APIstub shim.ChaincodeStubInterface, args []str
 		return shim.Error("Incorrect number of arguments. Expecting 2")
 	}
 
-	var data = Data{Key: args[0], Hash: args[1]}
+	var data = Data{Key: args[0], Value: args[1]}
 
 	dataAsBytes, _ := json.Marshal(data)
 	APIstub.PutState(args[0], dataAsBytes)
@@ -91,7 +91,7 @@ func (s *SmartContract) putHash(APIstub shim.ChaincodeStubInterface, args []stri
 	data := Data{}
 
 	json.Unmarshal(dataAsBytes, &data)
-	data.Hash = args[1]
+	data.Value = args[1]
 
 	dataAsBytes, _ = json.Marshal(data)
 	APIstub.PutState(args[0], dataAsBytes)
@@ -127,27 +127,29 @@ func (t *SmartContract) getHistory(APIstub shim.ChaincodeStubInterface, args []s
 		if bArrayMemberAlreadyWritten == true {
 			buffer.WriteString(",")
 		}
-		buffer.WriteString("{\"TxId\":")
+		buffer.WriteString("{\"txId\":")
 		buffer.WriteString("\"")
 		buffer.WriteString(response.TxId)
 		buffer.WriteString("\"")
 
-		buffer.WriteString(", \"Value\":")
-		// if it was a delete operation on given key, then we need to set the
-		// corresponding value null. Else, we will write the response.Value
-		// as-is (as the Value itself a JSON marble)
-		if response.IsDelete {
-			buffer.WriteString("null")
-		} else {
-			buffer.WriteString(string(response.Value))
-		}
+		var val Data
+		json.Unmarshal(response.Value, &val)
+		valueJson, _ := json.Marshal(val.Value)	
+		
+		buffer.WriteString(", \"key\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(val.Key)
+		buffer.WriteString("\"")
 
-		buffer.WriteString(", \"Timestamp\":")
+		buffer.WriteString(", \"value\":")
+		buffer.WriteString(string(valueJson))
+
+		buffer.WriteString(", \"timestamp\":")
 		buffer.WriteString("\"")
 		buffer.WriteString(time.Unix(response.Timestamp.Seconds, int64(response.Timestamp.Nanos)).String())
 		buffer.WriteString("\"")
 
-		buffer.WriteString(", \"IsDelete\":")
+		buffer.WriteString(", \"isDelete\":")
 		buffer.WriteString("\"")
 		buffer.WriteString(strconv.FormatBool(response.IsDelete))
 		buffer.WriteString("\"")
@@ -157,7 +159,7 @@ func (t *SmartContract) getHistory(APIstub shim.ChaincodeStubInterface, args []s
 	}
 	buffer.WriteString("]")
 
-	fmt.Printf("Get history returning:\n%s\n", buffer.String())
+	// fmt.Printf("Get history returning:\n%s\n", buffer.String())
 
 	return shim.Success(buffer.Bytes())
 }

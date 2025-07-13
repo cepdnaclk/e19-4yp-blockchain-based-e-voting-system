@@ -227,19 +227,19 @@ app.post(
       logger.debug("fcn  : " + fcn);
       logger.debug("args  : " + args);
       if (!chaincodeName) {
-        res.json(getErrorMessage("'chaincodeName'"));
+        res.status(400).json(getErrorMessage("'chaincodeName'"));
         return;
       }
       if (!channelName) {
-        res.json(getErrorMessage("'channelName'"));
+        res.status(400).json(getErrorMessage("'channelName'"));
         return;
       }
       if (!fcn) {
-        res.json(getErrorMessage("'fcn'"));
+        res.status(400).json(getErrorMessage("'fcn'"));
         return;
       }
       if (!args) {
-        res.json(getErrorMessage("'args'"));
+        res.status(400).json(getErrorMessage("'args'"));
         return;
       }
 
@@ -251,22 +251,20 @@ app.post(
         req.username,
         req.orgname
       );
-      console.log(`Response message is : ${response.message}`);
-      console.log(`Response result is : ${response.result}`);
 
       const response_payload = {
-        result: response,
+        result: [response.result],
         error: null,
         errorData: null,
       };
-      res.send(response_payload);
+      res.status(201).json(response_payload);
     } catch (error) {
       const response_payload = {
         result: null,
         error: error.name,
         errorData: error.message,
       };
-      res.send(response_payload);
+      res.status(500).json(response_payload);
     }
   }
 );

@@ -104,7 +104,7 @@ const Candidates: React.FC = () => {
   const fetchCandidates = async () => {
     try {
       const response = await sendRequest({
-        url: `${baseUrl}/api/admin/candidate/stats`,
+        url: `${baseUrl}/api/admin/candidate/list`,
         options: {
           method: "GET",
         },

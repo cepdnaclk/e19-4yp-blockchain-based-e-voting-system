@@ -70,7 +70,7 @@ const Parties: React.FC = () => {
   const fetchParties = async () => {
     try {
       const response = await sendRequest({
-        url: `${baseUrl}/api/admin/party/stats`,
+        url: `${baseUrl}/api/admin/party/list`,
         options: {
           method: "GET",
         },

@@ -1,4 +1,4 @@
-import { blockchainResponseTypes } from "../../common/types/blockchainResponseTypes";
+import { blockchainResponseType } from "../../common/types/blockchainResponseTypes";
 
 const channelName = process.env.CHANNEL_NAME || "mychannel";
 const chainCodeName = process.env.CHAINCODE_NAME || "chaincode";
@@ -13,15 +13,12 @@ const blockchainAccessToken =
 export const blockchainFetchByKey = async (
   key: string,
   history: boolean = false
-): Promise<blockchainResponseTypes> => {
+): Promise<blockchainResponseType> => {
   try {
-    const args = JSON.stringify([key]);
-    const encodedArgs = encodeURIComponent(args);
-    const encodedFcn = encodeURIComponent(
-      `fcn=${history ? historyFcn : fetchFcn}`
-    );
+    const encodedArgs = encodeURIComponent(`["${key}"]`);
+    const fcn = history ? historyFcn : fetchFcn;
 
-    const url = `http://localhost:${PORT}/api/${channelName}/${chainCodeName}?${encodedFcn}&${encodedArgs}`;
+    const url = `http://localhost:${PORT}/channels/${channelName}/chaincodes/${chainCodeName}?fcn=${fcn}&args=${encodedArgs}`;
 
     const response = await fetch(url, {
       method: "GET",
@@ -30,9 +27,9 @@ export const blockchainFetchByKey = async (
         Authorization: `Bearer ${blockchainAccessToken}`,
       },
     });
-    const data: blockchainResponseTypes = await response.json();
+    const data: blockchainResponseType = await response.json();
 
-    if (data.status !== 200) {
+    if (response.status !== 200) {
       throw new Error(
         `Failed to fetch by key: ${key}. Error: ${data.error}, Error Data: ${data.errorData}`
       );
@@ -45,17 +42,17 @@ export const blockchainFetchByKey = async (
 };
 
 export const blockchainPostPut = async (
-  inputData: Map<string, string>,
+  inputData: Map<string, any>,
   isPut: boolean = false
-): Promise<blockchainResponseTypes> => {
+): Promise<blockchainResponseType> => {
   try {
-    const url = `http://localhost:${PORT}/api/${channelName}/${chainCodeName}`;
-    const args = JSON.stringify(Array.from(inputData.entries()));
+    const url = `http://localhost:${PORT}/channels/${channelName}/chaincodes/${chainCodeName}`;
+    const args = inputData.entries().next().value;
 
     const response = await fetch(url, {
       body: JSON.stringify({
         fcn: isPut ? putFcn : postFcn,
-        args: [args],
+        args: args,
       }),
       method: isPut ? "PUT" : "POST",
       headers: {
@@ -64,8 +61,8 @@ export const blockchainPostPut = async (
       },
     });
 
-    const data: blockchainResponseTypes = await response.json();
-    if (data.status !== 201) {
+    const data: blockchainResponseType = await response.json();
+    if (response.status !== 201) {
       throw new Error(
         `Failed to ${isPut ? "put" : "post"} data. Error: ${
           data.error

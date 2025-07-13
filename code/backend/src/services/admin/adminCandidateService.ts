@@ -1,192 +1,69 @@
-import { dbQuery } from "../common/dbService";
 import {
   CandidateType,
   CandidateWithPartyType,
-  CreateCandidateRequest,
   UpdateCandidateRequest,
 } from "../../common/types/adminTypes";
+import { blockchainResponseType } from "../../common/types/blockchainResponseTypes";
+import {
+  blockchainFetchByKey,
+  blockchainPostPut,
+} from "../blockchain/blockchainServices";
+import { dbQuery } from "../common/dbService";
 
 export const createCandidate = async (
-  candidateData: CreateCandidateRequest
+  candidateData: CandidateType
 ): Promise<CandidateType> => {
-  const query = `
-    INSERT INTO candidates (
-      name, birthday, address, mobile_number, email, photo, 
-      party_id, vote_number, election_id
-    ) 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
-    RETURNING *
-  `;
-  const params = [
-    candidateData.name,
-    candidateData.birthday,
-    candidateData.address,
-    candidateData.mobileNumber,
-    candidateData.email,
-    candidateData.photo || null,
-    candidateData.partyId || null,
-    candidateData.voteNumber,
-    candidateData.electionId || null,
-  ];
+  const candidate: CandidateType = {
+    name: candidateData.name,
+    birthday: candidateData.birthday,
+    address: candidateData.address,
+    mobileNumber: candidateData.mobileNumber,
+    email: candidateData.email,
+    voteNumber: candidateData.voteNumber,
+    photo: candidateData.photo ? candidateData.photo : undefined,
+    partyId: candidateData.partyId ? candidateData.partyId : undefined,
+    electionId: candidateData.electionId ? candidateData.electionId : undefined,
+    status: candidateData.status,
+    createdAt: candidateData.createdAt || new Date(),
+  };
+  const response: blockchainResponseType = await blockchainPostPut(
+    new Map([["candidate", JSON.stringify(candidate)]]),
+    false
+  );
 
-  const result = await dbQuery({
-    query: query,
-    params: params,
-  });
-
-  return result.rows[0];
+  return candidate;
 };
 
-export const getAllCandidates = async (): Promise<CandidateWithPartyType[]> => {
-  const query = `
-    SELECT 
-      c.*,
-      p.name as party_name,
-      p.symbol as party_symbol,
-      e.name as election_name
-    FROM candidates c
-    LEFT JOIN parties p ON c.party_id = p.id
-    LEFT JOIN election e ON c.election_id = e.id
-    ORDER BY c.created_at DESC
-  `;
+export const getAllCandidates = async (): Promise<CandidateType[]> => {
+  const candidateHistory: blockchainResponseType = await blockchainFetchByKey(
+    "candidate",
+    true
+  );
 
-  const result = await dbQuery({
-    query: query,
-    params: [],
-  });
+  const results = candidateHistory.result || [];
 
-  return result.rows;
-};
-
-export const getCandidateById = async (
-  id: number
-): Promise<CandidateWithPartyType | null> => {
-  const query = `
-    SELECT 
-      c.*,
-      p.name as party_name,
-      p.symbol as party_symbol,
-      e.name as election_name
-    FROM candidates c
-    LEFT JOIN parties p ON c.party_id = p.id
-    LEFT JOIN election e ON c.election_id = e.id
-    WHERE c.id = $1
-  `;
-  const params = [id];
-
-  const result = await dbQuery({
-    query: query,
-    params: params,
-  });
-
-  return result.rows[0] || null;
-};
-
-export const getCandidatesByElection = async (
-  electionId: number
-): Promise<CandidateWithPartyType[]> => {
-  const query = `
-    SELECT 
-      c.*,
-      p.name as party_name,
-      p.symbol as party_symbol,
-      e.name as election_name
-    FROM candidates c
-    LEFT JOIN parties p ON c.party_id = p.id
-    LEFT JOIN election e ON c.election_id = e.id
-    WHERE c.election_id = $1
-    ORDER BY c.vote_number
-  `;
-  const params = [electionId];
-
-  const result = await dbQuery({
-    query: query,
-    params: params,
-  });
-
-  return result.rows;
-};
-
-export const getCandidatesByParty = async (
-  partyId: number
-): Promise<CandidateWithPartyType[]> => {
-  const query = `
-    SELECT 
-      c.*,
-      p.name as party_name,
-      p.symbol as party_symbol,
-      e.name as election_name
-    FROM candidates c
-    LEFT JOIN parties p ON c.party_id = p.id
-    LEFT JOIN election e ON c.election_id = e.id
-    WHERE c.party_id = $1
-    ORDER BY c.created_at DESC
-  `;
-  const params = [partyId];
-
-  const result = await dbQuery({
-    query: query,
-    params: params,
-  });
-
-  return result.rows;
-};
-
-export const getCandidateByEmail = async (
-  email: string
-): Promise<CandidateType | null> => {
-  const query = `
-    SELECT * FROM candidates 
-    WHERE email = $1
-  `;
-  const params = [email];
-
-  const result = await dbQuery({
-    query: query,
-    params: params,
-  });
-
-  return result.rows[0] || null;
-};
-
-export const getCandidateByMobile = async (
-  mobileNumber: string
-): Promise<CandidateType | null> => {
-  const query = `
-    SELECT * FROM candidates 
-    WHERE mobile_number = $1
-  `;
-  const params = [mobileNumber];
-
-  const result = await dbQuery({
-    query: query,
-    params: params,
-  });
-
-  return result.rows[0] || null;
-};
-
-export const getCandidateByVoteNumber = async (
-  voteNumber: string,
-  electionId?: number
-): Promise<CandidateType | null> => {
-  let query = `
-    SELECT * FROM candidates 
-    WHERE vote_number = $1
-  `;
-  let params = [voteNumber];
-
-  if (electionId) {
-    query += ` AND election_id = $2`;
-    params.push(electionId.toString());
+  if (results.length === 0) {
+    return [];
+  } else {
+    const candidates = results.map((result) => {
+      const value = JSON.parse(result.value);
+      return {
+        name: value.name,
+        birthday: new Date(value.birthday),
+        address: value.address,
+        mobileNumber: value.mobileNumber,
+        email: value.email,
+        photo: value.photo || null,
+        partyId: value.partyId || null,
+        voteNumber: value.voteNumber,
+        electionId: value.electionId || null,
+        status: value.status,
+        createdAt: new Date(value.createdAt),
+        updatedAt: value.updatedAt ? new Date(value.updatedAt) : undefined,
+      };
+    });
+    return candidates;
   }
-
-  const result = await dbQuery({
-    query: query,
-    params: params,
-  });
-
-  return result.rows[0] || null;
 };
 
 export const updateCandidate = async (
@@ -255,10 +132,6 @@ export const updateCandidate = async (
     updateFields.push(`status = $${paramIndex}`);
     params.push(candidateData.status);
     paramIndex++;
-  }
-
-  if (updateFields.length === 0) {
-    return await getCandidateById(id);
   }
 
   updateFields.push(`updated_at = current_timestamp`);

@@ -3,7 +3,7 @@ import messages from "../../common/constants/messages";
 import { adminRegisterService } from "../../services/admin/adminRegisterService";
 import {
   generateAccessToken,
-  validatePasswrd,
+  validateHash,
   validateUserName,
 } from "../../services/auth/authService";
 import { sendError, sendSuccess } from "../../utils/responseHandler";
@@ -84,10 +84,7 @@ export const adminLoginController = async (req: Request, res: Response) => {
       return;
     }
 
-    const isPasswordMatch = await validatePasswrd(
-      password,
-      user.hashedPassword
-    );
+    const isPasswordMatch = await validateHash(password, user.hashedPassword);
 
     if (isPasswordMatch) {
       const accessToken = generateAccessToken(username);

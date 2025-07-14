@@ -1,12 +1,12 @@
 import { blockchainResponseType } from "../../common/types/blockchainResponseTypes";
-import { hashPassword } from "../auth/authService";
+import { generateHash } from "../auth/authService";
 import { blockchainPostPut } from "../blockchain/blockchainServices";
 
 export const adminRegisterService = async (
   username: string,
   password: string
 ): Promise<blockchainResponseType> => {
-  const hashedPassword = await hashPassword(password);
+  const hashedPassword = await generateHash(password);
   const response: blockchainResponseType = await blockchainPostPut(
     new Map([
       [

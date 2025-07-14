@@ -27,6 +27,10 @@ const messages = {
   voter: {
     registrationIsNotAllowed:
       "Voter registration and key generation is not allowed",
+    registrationSuccess: "Voter registration successful",
+    votersSecretKeyMissing: "Voters secret key is missing",
+    pollingStationSecretKeyMissing: "Polling station secret key is missing",
+    invalidKeys: "Invalid voters or polling station secret keys",
   },
 };
 

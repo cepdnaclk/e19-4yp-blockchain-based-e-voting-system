@@ -11,7 +11,7 @@ import { AdminUserType } from "../../common/types/adminTypes";
 import { getAdminUsersByUsername } from "../../services/admin/adminCommonServices";
 import { adminLoginService } from "../../services/admin/adminLoginService";
 import { adminLogoutService } from "../../services/admin/adminLogoutService";
-import { blockchainResponseType } from "../../common/types/blockchainResponseTypes";
+import { blockchainHistoryResponseType } from "../../common/types/blockchainResponseTypes";
 import { blockchainFetchByKey } from "../../services/blockchain/blockchainServices";
 
 export const adminRegisterController = async (req: Request, res: Response) => {
@@ -50,7 +50,7 @@ export const adminRegisterController = async (req: Request, res: Response) => {
       });
       return;
     }
-    const response: blockchainResponseType = await adminRegisterService(
+    const response: blockchainHistoryResponseType = await adminRegisterService(
       username,
       password
     );

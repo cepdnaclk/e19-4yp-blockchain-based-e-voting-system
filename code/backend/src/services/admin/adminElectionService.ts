@@ -1,5 +1,8 @@
 import { ElectionType } from "../../common/types/adminTypes";
-import { blockchainResponseType } from "../../common/types/blockchainResponseTypes";
+import {
+  blockchainHistoryResponseType,
+  blockchainRecordResponseType,
+} from "../../common/types/blockchainResponseTypes";
 import {
   blockchainFetchByKey,
   blockchainPostPut,
@@ -10,13 +13,20 @@ export const createNewElection = async (
   startDateTime: Date,
   endDateTime: Date
 ) => {
+  const existingElection: ElectionType | null = await getLastElection();
+  let electionId = 1;
+  if (existingElection) {
+    electionId = existingElection.id ? existingElection.id + 1 : 1;
+  }
+
   const election: ElectionType = {
+    id: electionId,
     name: name,
     startDateTime: startDateTime,
     endDateTime: endDateTime,
     createdAt: new Date(),
   };
-  const response: blockchainResponseType = await blockchainPostPut(
+  await blockchainPostPut(
     new Map([["election", JSON.stringify(election)]]),
     false
   );
@@ -24,8 +34,28 @@ export const createNewElection = async (
   return election;
 };
 
+export const getLastElection = async (): Promise<ElectionType | null> => {
+  const election: blockchainRecordResponseType = await blockchainFetchByKey(
+    "election",
+    false
+  );
+  if (election.result && election.result.value) {
+    const value = JSON.parse(election.result.value);
+    return {
+      id: value.id,
+      name: value.name,
+      startDateTime: new Date(value.startDateTime),
+      endDateTime: new Date(value.endDateTime),
+      createdAt: value.createdAt ? new Date(value.createdAt) : undefined,
+      updatedAt: value.updatedAt ? new Date(value.updatedAt) : undefined,
+    };
+  } else {
+    return null;
+  }
+};
+
 export const getAllElections = async (): Promise<ElectionType[]> => {
-  const results: blockchainResponseType = await blockchainFetchByKey(
+  const results: blockchainHistoryResponseType = await blockchainFetchByKey(
     "election",
     true
   );

@@ -1,5 +1,6 @@
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
 import LogoutIcon from "@mui/icons-material/Logout";
+import LoadingOverlay from "./LoadingOverlay";
 import {
   Alert,
   AppBar,
@@ -72,7 +73,8 @@ const UserDashboard: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [parties, setParties] = useState<Party[]>([]);
-  // const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingCandidate, setIsLoadingCandidate] = useState(false);
+  const [isLoadingVoteCasting, setIsLoadingVoteCasting] = useState(false);
   const theme = useTheme();
   const navigate = useNavigate();
 
@@ -108,14 +110,20 @@ const UserDashboard: React.FC = () => {
         })
       );
       setCandidates(candidates);
+      if (candidates.length > 0) {
+        setSelectedCandidate(candidates[0]);
+      }
+      setIsLoadingCandidate(false);
     } catch (error) {
       console.error("Error fetching candidates:", error);
       setError("Failed to fetch candidates. Please try again later.");
+      setIsLoadingCandidate(false);
     }
   };
 
   const fetchParties = async () => {
     try {
+      setIsLoadingCandidate(true);
       setError(null);
       const response: {
         status: number;
@@ -136,7 +144,6 @@ const UserDashboard: React.FC = () => {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setSelectedCandidate(null);
   };
 
   const handleLogout = () => {
@@ -148,30 +155,34 @@ const UserDashboard: React.FC = () => {
       setError("Please select a candidate.");
       return;
     }
-    const voterId = localStorage.getItem("voterId");
-    if (!voterId) {
+    const votersSecretKey = localStorage.getItem("votersSecretKey");
+    if (!votersSecretKey) {
       setError("You must be logged in to vote.");
       return;
     }
     try {
+      setOpenDialog(false);
+      setIsLoadingVoteCasting(true);
+
       const response = await axios.post(
         "http://localhost:5000/api/votes/cast",
         {
-          candidate_id: selectedCandidate.id,
-          voter_id: voterId,
+          candidateId: selectedCandidate.id,
+          votersSecretKey: votersSecretKey,
         }
       );
       const data = response.data as { message?: string; error?: string };
       if (data && data.message === "Vote cast successfully") {
         setSuccess("Your vote has been cast!");
         setOpenDialog(false);
-        setSelectedCandidate(null);
       } else {
         setError("Failed to cast vote.");
       }
     } catch (err) {
       console.error("Error casting vote:", err);
       setError("Failed to cast vote. Please try again later.");
+    } finally {
+      setIsLoadingVoteCasting(false);
     }
   };
 
@@ -200,6 +211,14 @@ const UserDashboard: React.FC = () => {
         },
       }}
     >
+      <LoadingOverlay
+        isLoading={isLoadingCandidate}
+        message="Loading candidates..."
+      />
+      <LoadingOverlay
+        isLoading={isLoadingVoteCasting}
+        message="Casting Vote..."
+      />
       <AppBar
         position="fixed"
         sx={{

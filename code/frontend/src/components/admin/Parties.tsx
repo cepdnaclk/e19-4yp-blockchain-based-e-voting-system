@@ -1,31 +1,26 @@
-import React, { useState, useEffect } from "react";
+import { Add as AddIcon } from "@mui/icons-material";
 import {
+  Avatar,
   Box,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
   Button,
+  Chip,
+  CircularProgress,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  TextField,
+  DialogContent,
+  DialogTitle,
   Grid,
   List,
   ListItem,
-  ListItemText,
   ListItemAvatar,
-  Avatar,
-  IconButton,
-  CircularProgress,
-  Chip,
+  ListItemText,
+  Paper,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
 } from "@mui/material";
-import {
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  ArrowBack as ArrowBackIcon,
-} from "@mui/icons-material";
+import React, { useEffect, useState } from "react";
 import { useToast } from "../../context/ToastContext";
 import { useFetch } from "../../hooks/useFetch";
 
@@ -35,14 +30,6 @@ interface Party {
   symbol: string;
   status: "active" | "inactive";
   candidate_count?: number;
-}
-
-interface Candidate {
-  id: number;
-  name: string;
-  party: string;
-  status: "active" | "inactive";
-  vote_number: string;
 }
 
 interface PartyFetchResposnse {
@@ -58,10 +45,10 @@ const Parties: React.FC = () => {
   const { showToast } = useToast();
   const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [partyToDelete, setPartyToDelete] = useState<number | null>(null);
+  // const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  // const [partyToDelete, setPartyToDelete] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedParty, setSelectedParty] = useState<Party | null>(null);
+  // const [selectedParty, setSelectedParty] = useState<Party | null>(null);
   const [parties, setParties] = useState<Party[]>([]);
   const [partyData, setPartyData] = useState({
     name: "",
@@ -347,7 +334,7 @@ const Parties: React.FC = () => {
   //                 <ListItem key={candidate.id}>
   //                   <ListItemText
   //                     primary={candidate.name}
-  //                     secondary={`Vote Number: ${candidate.vote_number}`}
+  //                     secondary={`Candidate Number: ${candidate.vote_number}`}
   //                   />
   //                   <Chip
   //                     label={candidate.status}
@@ -396,7 +383,6 @@ const Parties: React.FC = () => {
           sx={{ borderBottom: 1, borderColor: "divider" }}
         >
           <Tab label="All Parties" />
-          {selectedParty && <Tab label={selectedParty.name} />}
         </Tabs>
 
         <Box sx={{ p: 3 }}>

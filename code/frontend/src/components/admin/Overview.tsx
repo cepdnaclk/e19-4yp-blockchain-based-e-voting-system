@@ -1,10 +1,9 @@
 import {
   CheckCircle as CheckCircleIcon,
-  Event as EventIcon,
-  LocationOn as LocationIcon,
   People as PeopleIcon,
-  HowToVote as VoteIcon,
 } from "@mui/icons-material";
+import DoneOutlineIcon from "@mui/icons-material/DoneOutline";
+import HowToVoteIcon from "@mui/icons-material/HowToVote";
 import {
   Box,
   Chip,
@@ -338,8 +337,8 @@ const Overview: React.FC = () => {
           <StatCard
             title="Active Elections"
             value={stats.activeElections}
-            icon={<EventIcon sx={{ color: theme.palette.info.main }} />}
-            color={theme.palette.info.main}
+            icon={<HowToVoteIcon sx={{ color: theme.palette.success.main }} />}
+            color={theme.palette.success.main}
           />
         </Grid>
 
@@ -347,23 +346,25 @@ const Overview: React.FC = () => {
           <StatCard
             title="Active Candidates"
             value={stats.activeCandidates}
-            icon={<LocationIcon sx={{ color: theme.palette.primary.main }} />}
-            color={theme.palette.primary.main}
+            icon={<PeopleIcon sx={{ color: theme.palette.success.main }} />}
+            color={theme.palette.success.main}
           />
         </Grid>
         <Grid item xs={12} md={4}>
           <StatCard
             title="Total Voters"
             value={stats.totalVoters}
-            icon={<PeopleIcon sx={{ color: theme.palette.primary.main }} />}
-            color={theme.palette.primary.main}
+            icon={<PeopleIcon sx={{ color: theme.palette.success.main }} />}
+            color={theme.palette.success.main}
           />
         </Grid>
         <Grid item xs={12} md={4}>
           <StatCard
             title="Voters Voted"
             value={stats.votedVoters}
-            icon={<VoteIcon sx={{ color: theme.palette.success.main }} />}
+            icon={
+              <DoneOutlineIcon sx={{ color: theme.palette.success.main }} />
+            }
             color={theme.palette.success.main}
             progress={Number(
               stats.totalVoters < 1

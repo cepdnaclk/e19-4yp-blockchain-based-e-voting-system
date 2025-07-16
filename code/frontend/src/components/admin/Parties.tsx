@@ -39,6 +39,22 @@ interface PartyFetchResposnse {
   status: "active" | "inactive";
 }
 
+interface Candidate {
+  id: number;
+  name: string;
+  birthday: Date;
+  address: string;
+  mobileNumber: string;
+  email: string;
+  photo: string;
+  partyId?: string;
+  partyName?: string;
+  candidateNumber: string;
+  electionId?: string;
+  electionName?: string;
+  status: "active" | "inactive";
+}
+
 const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
 
 const Parties: React.FC = () => {
@@ -50,6 +66,7 @@ const Parties: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   // const [selectedParty, setSelectedParty] = useState<Party | null>(null);
   const [parties, setParties] = useState<Party[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [partyData, setPartyData] = useState({
     name: "",
     symbol: "",
@@ -59,8 +76,29 @@ const Parties: React.FC = () => {
   // Fetch parties on component mount
   useEffect(() => {
     fetchParties();
+    fetchCandidates();
   }, []);
 
+  const fetchCandidates = async () => {
+    try {
+      const response: {
+        status: number;
+        data: { message: string; data: Candidate[] };
+      } = await sendRequest({
+        url: `${baseUrl}/api/admin/candidate/list`,
+        options: {
+          method: "GET",
+        },
+      });
+
+      if (response && response.status === 200) {
+        setCandidates(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching candidates:", error);
+      showToast("Failed to fetch candidates. Please try again.", "error");
+    }
+  };
   const fetchParties = async () => {
     try {
       const response: {
@@ -237,7 +275,10 @@ const Parties: React.FC = () => {
                   sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}
                 >
                   <Typography variant="body2" color="text.secondary">
-                    {party.candidate_count || 0} candidates
+                    {candidates.filter(
+                      (entry) => Number(entry.partyId) === Number(party.id)
+                    ).length || 0}{" "}
+                    Candidates
                   </Typography>
                 </Box>
               }

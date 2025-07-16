@@ -1,39 +1,33 @@
-import React, { useState, useEffect } from "react";
+import { Add as AddIcon, Person as PersonIcon } from "@mui/icons-material";
 import {
+  Avatar,
   Box,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
   Button,
+  Chip,
+  CircularProgress,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  TextField,
+  DialogContent,
+  DialogTitle,
+  FormControl,
   Grid,
+  InputLabel,
   List,
   ListItem,
-  ListItemText,
   ListItemAvatar,
-  Avatar,
-  IconButton,
+  ListItemText,
   MenuItem,
+  Paper,
   Select,
-  FormControl,
-  InputLabel,
-  CircularProgress,
-  Chip,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
 } from "@mui/material";
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Person as PersonIcon,
-} from "@mui/icons-material";
 import { DatePicker } from "@mui/x-date-pickers";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import React, { useEffect, useState } from "react";
 import { useToast } from "../../context/ToastContext";
 import { useFetch } from "../../hooks/useFetch";
 
@@ -42,15 +36,14 @@ interface Candidate {
   name: string;
   birthday: Date;
   address: string;
-  mobile_number: string;
+  mobileNumber: string;
   email: string;
   photo: string;
-  party_id?: number;
-  party_name?: string;
-  party_symbol?: string;
-  vote_number: string;
-  election_id?: number;
-  election_name?: string;
+  partyId?: string;
+  partyName?: string;
+  candidateNumber: string;
+  electionId?: string;
+  electionName?: string;
   status: "active" | "inactive";
 }
 
@@ -73,14 +66,14 @@ const Candidates: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [candidateToDelete, setCandidateToDelete] = useState<number | null>(
-    null
-  );
+  // const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  // const [candidateToDelete, setCandidateToDelete] = useState<number | null>(
+  // null
+  // );
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [parties, setParties] = useState<Party[]>([]);
   const [elections, setElections] = useState<Election[]>([]);
-  const [candidateData, setCandidateData] = useState({
+  const [candidateData, setCandidateData] = useState<Candidate>({
     id: 0,
     name: "",
     birthday: new Date(),
@@ -89,8 +82,11 @@ const Candidates: React.FC = () => {
     email: "",
     photo: "",
     partyId: "",
-    voteNumber: "",
+    partyName: "",
+    candidateNumber: "",
     electionId: "",
+    electionName: "",
+    status: "inactive",
   });
   const { sendRequest } = useFetch({ setLoading: setIsLoading });
 
@@ -103,7 +99,10 @@ const Candidates: React.FC = () => {
 
   const fetchCandidates = async () => {
     try {
-      const response = await sendRequest({
+      const response: {
+        status: number;
+        data: { message: string; data: Candidate[] };
+      } = await sendRequest({
         url: `${baseUrl}/api/admin/candidate/list`,
         options: {
           method: "GET",
@@ -121,7 +120,10 @@ const Candidates: React.FC = () => {
 
   const fetchParties = async () => {
     try {
-      const response = await sendRequest({
+      const response: {
+        status: number;
+        data: { message: string; data: { id: number; name: string }[] };
+      } = await sendRequest({
         url: `${baseUrl}/api/admin/party/list`,
         options: {
           method: "GET",
@@ -129,7 +131,11 @@ const Candidates: React.FC = () => {
       });
 
       if (response && response.status === 200) {
-        setParties(response.data.data);
+        const data: Party[] = response.data.data.map((party) => ({
+          id: party.id,
+          name: party.name,
+        }));
+        setParties(data);
       }
     } catch (error) {
       console.error("Error fetching parties:", error);
@@ -138,7 +144,18 @@ const Candidates: React.FC = () => {
 
   const fetchElections = async () => {
     try {
-      const response = await sendRequest({
+      const response: {
+        status: number;
+        data: {
+          message: string;
+          data: {
+            id: number;
+            name: string;
+            startDateTime: Date;
+            endDateTime: Date;
+          }[];
+        };
+      } = await sendRequest({
         url: `${baseUrl}/api/admin/election/list`,
         options: {
           method: "GET",
@@ -147,19 +164,17 @@ const Candidates: React.FC = () => {
 
       if (response && response.status === 200) {
         const electionsData: Election[] = response.data.data.map(
-          (election: any) => ({
+          (election) => ({
             id: election.id,
             name: election.name,
-            start_date_time: new Date(election.start_date_time),
-            end_date_time: new Date(election.end_date_time),
+            start_date_time: new Date(election.startDateTime),
+            end_date_time: new Date(election.endDateTime),
             status:
-              new Date() > new Date(election.end_date_time)
+              new Date() > new Date(election.endDateTime)
                 ? "completed"
-                : new Date() < new Date(election.start_date_tine)
+                : new Date() < new Date(election.startDateTime)
                 ? "pending"
                 : "active",
-            candidate_count: election.candidate_count || 0,
-            vote_count: election.vote_count || 0,
           })
         );
         setElections(electionsData);
@@ -173,53 +188,55 @@ const Candidates: React.FC = () => {
     setTabValue(newValue);
   };
 
+  // TODO : Add this when the editing candidate is allowed
   // Opens dialog to edit a candidate
-  const handleEditCandidate = (candidate: Candidate) => {
-    setIsEditMode(true);
-    setCandidateData({
-      id: candidate.id,
-      name: candidate.name,
-      birthday: new Date(candidate.birthday),
-      address: candidate.address,
-      mobileNumber: candidate.mobile_number,
-      email: candidate.email,
-      photo: candidate.photo || "",
-      partyId: candidate.party_id?.toString() || "",
-      voteNumber: candidate.vote_number,
-      electionId: candidate.election_id?.toString() || "",
-    });
-    setOpenDialog(true);
-  };
+  // const handleEditCandidate = (candidate: Candidate) => {
+  //   setIsEditMode(true);
+  //   setCandidateData({
+  //     id: candidate.id,
+  //     name: candidate.name,
+  //     birthday: new Date(candidate.birthday),
+  //     address: candidate.address,
+  //     mobileNumber: candidate.mobile_number,
+  //     email: candidate.email,
+  //     photo: candidate.photo || "",
+  //     partyId: candidate.party_id?.toString() || "",
+  //     candidateNumber: candidate.vote_number,
+  //     electionId: candidate.election_id?.toString() || "",
+  //   });
+  //   setOpenDialog(true);
+  // };
 
-  const handleDeleteClick = (candidateId: number) => {
-    setCandidateToDelete(candidateId);
-    setDeleteDialogOpen(true);
-  };
+  // TODO : Add this when the deleting candidate is allowed"
+  // const handleDeleteClick = (candidateId: number) => {
+  //   setCandidateToDelete(candidateId);
+  //   setDeleteDialogOpen(true);
+  // };
 
   // Deletes the selected candidate
-  const handleDeleteConfirm = async () => {
-    if (!candidateToDelete) return;
+  // const handleDeleteConfirm = async () => {
+  //   if (!candidateToDelete) return;
 
-    try {
-      const response = await sendRequest({
-        url: `${baseUrl}/api/admin/candidate/${candidateToDelete}`,
-        options: {
-          method: "DELETE",
-        },
-      });
+  //   try {
+  //     const response = await sendRequest({
+  //       url: `${baseUrl}/api/admin/candidate/${candidateToDelete}`,
+  //       options: {
+  //         method: "DELETE",
+  //       },
+  //     });
 
-      if (response && response.status === 200) {
-        showToast("Candidate deleted successfully!", "success");
-        fetchCandidates(); // Refresh the list
-      }
-    } catch (error) {
-      console.error("Error deleting candidate:", error);
-      showToast("Failed to delete candidate. Please try again.", "error");
-    } finally {
-      setDeleteDialogOpen(false);
-      setCandidateToDelete(null);
-    }
-  };
+  //     if (response && response.status === 200) {
+  //       showToast("Candidate deleted successfully!", "success");
+  //       fetchCandidates(); // Refresh the list
+  //     }
+  //   } catch (error) {
+  //     console.error("Error deleting candidate:", error);
+  //     showToast("Failed to delete candidate. Please try again.", "error");
+  //   } finally {
+  //     setDeleteDialogOpen(false);
+  //     setCandidateToDelete(null);
+  //   }
+  // };
 
   const handleCreateCandidate = () => {
     setIsEditMode(false);
@@ -232,8 +249,9 @@ const Candidates: React.FC = () => {
       email: "",
       photo: "",
       partyId: "",
-      voteNumber: "",
-      electionId: "",
+      candidateNumber: "",
+      partyName: "",
+      status: "inactive",
     });
     setOpenDialog(true);
   };
@@ -250,8 +268,9 @@ const Candidates: React.FC = () => {
       email: "",
       photo: "",
       partyId: "",
-      voteNumber: "",
+      candidateNumber: "",
       electionId: "",
+      status: "inactive",
     });
   };
 
@@ -277,8 +296,13 @@ const Candidates: React.FC = () => {
       return;
     }
 
-    if (!candidateData.voteNumber.trim()) {
-      showToast("Please enter a vote number.", "error");
+    if (!candidateData.photo.trim()) {
+      showToast("Please enter a photo url.", "error");
+      return;
+    }
+
+    if (!candidateData.candidateNumber.trim()) {
+      showToast("Please enter a candidate number.", "error");
       return;
     }
 
@@ -291,20 +315,14 @@ const Candidates: React.FC = () => {
         email: candidateData.email,
         photo: candidateData.photo || "",
         partyId: candidateData.partyId ? candidateData.partyId : "",
-        voteNumber: candidateData.voteNumber,
+        candidateNumber: candidateData.candidateNumber,
         electionId: candidateData.electionId ? candidateData.electionId : "",
       };
 
-      const url = isEditMode
-        ? `${baseUrl}/api/admin/candidate/${candidateData.id}`
-        : `${baseUrl}/api/admin/candidate/create`;
-
-      const method = isEditMode ? "PUT" : "POST";
-
       const response = await sendRequest({
-        url: url,
+        url: `${baseUrl}/api/admin/candidate/create`,
         options: {
-          method: method,
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
@@ -312,24 +330,18 @@ const Candidates: React.FC = () => {
         },
       });
 
-      if (response && (response.status === 201 || response.status === 200)) {
-        showToast(
-          isEditMode
-            ? "Candidate updated successfully!"
-            : "Candidate created successfully!",
-          "success"
-        );
+      const candidateFull: Candidate = {
+        ...candidateData,
+        status: candidateData.electionId ? "active" : "inactive",
+      };
+      if (response && response.status === 201) {
+        showToast("Candidate created successfully!", "success");
         handleCloseDialog();
-        fetchCandidates(); // Refresh the list
+        setCandidates((prev) => [...prev, candidateFull]);
       }
     } catch (error) {
       console.error("Error saving candidate:", error);
-      showToast(
-        `Failed to ${
-          isEditMode ? "update" : "create"
-        } candidate. Please try again.`,
-        "error"
-      );
+      showToast(`Failed to create candidate. Please try again.`, "error");
     }
   };
 
@@ -409,19 +421,27 @@ const Candidates: React.FC = () => {
               secondary={
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    Email: {candidate.email} | Mobile: {candidate.mobile_number}
+                    Email: {candidate.email} | Mobile: {candidate.mobileNumber}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Vote Number: {candidate.vote_number}
-                    {candidate.party_name &&
-                      ` | Party: ${candidate.party_name}`}
-                    {candidate.election_name &&
-                      ` | Election: ${candidate.election_name}`}
+                    Candidate Number: {candidate.candidateNumber}
+                    {candidate.partyId &&
+                      ` | Party: ${
+                        parties.find((p) => p.id === Number(candidate.partyId))
+                          ?.name
+                      }`}
+                    {candidate.electionId &&
+                      ` | Election: ${
+                        elections.find(
+                          (c) => c.id === Number(candidate.electionId)
+                        )?.name
+                      }`}
                   </Typography>
                 </Box>
               }
             />
-            <Box sx={{ display: "flex", gap: 1 }}>
+            {/* TODO : Add this if editing and deleting features are needed */}
+            {/* <Box sx={{ display: "flex", gap: 1 }}>
               <IconButton
                 edge="end"
                 aria-label="edit"
@@ -438,7 +458,7 @@ const Candidates: React.FC = () => {
               >
                 <DeleteIcon />
               </IconButton>
-            </Box>
+            </Box> */}
           </ListItem>
         ))
       )}
@@ -585,6 +605,7 @@ const Candidates: React.FC = () => {
               </Grid>
               <Grid item xs={12}>
                 <TextField
+                  required
                   fullWidth
                   label="Photo URL"
                   value={candidateData.photo}
@@ -648,12 +669,12 @@ const Candidates: React.FC = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Vote Number"
-                  value={candidateData.voteNumber}
+                  label="Candidate Number"
+                  value={candidateData.candidateNumber}
                   onChange={(e) =>
                     setCandidateData({
                       ...candidateData,
-                      voteNumber: e.target.value,
+                      candidateNumber: e.target.value,
                     })
                   }
                   required
@@ -665,13 +686,14 @@ const Candidates: React.FC = () => {
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
           <Button onClick={handleSubmit} variant="contained">
-            {isEditMode ? "Update" : "Create"} Candidate
+            Create Candidate
           </Button>
         </DialogActions>
       </Dialog>
 
+      {/* TODO : Add this if the deleting candidates is allowed */}
       {/* Delete Confirmation Dialog */}
-      <Dialog
+      {/* <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
       >
@@ -692,7 +714,7 @@ const Candidates: React.FC = () => {
             Delete
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
     </Box>
   );
 };

@@ -11,16 +11,14 @@ export interface ElectionType {
   startDateTime: Date;
   endDateTime: Date;
   createdAt?: Date;
-  updatedAt?: Date;
 }
 
 export interface PartyType {
   id?: number;
   name: string;
   symbol: string;
-  status?: "active" | "inactive";
+  electionId: string;
   createdAt?: Date;
-  updatedAt?: Date;
 }
 
 export interface CandidateType {
@@ -32,11 +30,9 @@ export interface CandidateType {
   email: string;
   photo?: string;
   partyId?: number;
-  voteNumber: string;
   electionId?: number;
-  status: "active" | "inactive";
+  candidateNumber: string;
   createdAt?: Date;
-  updatedAt?: Date;
 }
 
 export interface CandidateWithPartyType extends CandidateType {

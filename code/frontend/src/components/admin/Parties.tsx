@@ -9,12 +9,16 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   Grid,
+  InputLabel,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
+  MenuItem,
   Paper,
+  Select,
   Tab,
   Tabs,
   TextField,
@@ -28,15 +32,20 @@ interface Party {
   id: number;
   name: string;
   symbol: string;
-  status: "active" | "inactive";
+  electionId?: number;
   candidate_count?: number;
+}
+
+interface ElectionType {
+  id: number;
+  name: string;
 }
 
 interface PartyFetchResposnse {
   id: number;
   name: string;
   symbol: string;
-  status: "active" | "inactive";
+  electionId?: number;
 }
 
 interface Candidate {
@@ -52,7 +61,6 @@ interface Candidate {
   candidateNumber: string;
   electionId?: string;
   electionName?: string;
-  status: "active" | "inactive";
 }
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
@@ -67,17 +75,46 @@ const Parties: React.FC = () => {
   // const [selectedParty, setSelectedParty] = useState<Party | null>(null);
   const [parties, setParties] = useState<Party[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [elections, setElections] = useState<ElectionType[]>([]);
   const [partyData, setPartyData] = useState({
     name: "",
     symbol: "",
+    electionId: "",
   });
   const { sendRequest } = useFetch({ setLoading: setIsLoading });
 
-  // Fetch parties on component mount
   useEffect(() => {
-    fetchParties();
+    fetchElections();
     fetchCandidates();
   }, []);
+
+  useEffect(() => {
+    if (elections.length > 0) {
+      fetchParties();
+    }
+  }, [elections]);
+
+  const fetchElections = async () => {
+    try {
+      const response: {
+        status: number;
+        data: { message: string; data: { id: number; name: string }[] };
+      } = await sendRequest({
+        url: `${baseUrl}/api/admin/election/list`,
+        options: {
+          method: "GET",
+        },
+      });
+
+      if (response && response.status === 200) {
+        // Handle elections data if needed
+        setElections(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching elections:", error);
+      showToast("Failed to fetch elections. Please try again.", "error");
+    }
+  };
 
   const fetchCandidates = async () => {
     try {
@@ -99,6 +136,7 @@ const Parties: React.FC = () => {
       showToast("Failed to fetch candidates. Please try again.", "error");
     }
   };
+
   const fetchParties = async () => {
     try {
       const response: {
@@ -116,7 +154,7 @@ const Parties: React.FC = () => {
           id: party.id,
           name: party.name,
           symbol: party.symbol,
-          status: party.status,
+          electionId: party.electionId,
         }));
 
         setParties(fetchedParties);
@@ -140,6 +178,7 @@ const Parties: React.FC = () => {
     setPartyData({
       name: "",
       symbol: "",
+      electionId: "",
     });
   };
 
@@ -166,7 +205,11 @@ const Parties: React.FC = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: { name: partyData.name, symbol: partyData.symbol },
+          body: {
+            name: partyData.name,
+            symbol: partyData.symbol,
+            electionId: partyData.electionId,
+          },
         },
       });
 
@@ -178,7 +221,7 @@ const Parties: React.FC = () => {
           id: data.id,
           name: data.name,
           symbol: data.symbol,
-          status: "active",
+          electionId: data.electionId,
         };
         setParties((prev) => [...prev, newParty]);
       }
@@ -264,9 +307,9 @@ const Parties: React.FC = () => {
                 <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                   {party.name}
                   <Chip
-                    label={party.status}
+                    label={party.electionId ? "active" : "inactive"}
                     size="small"
-                    color={party.status === "active" ? "success" : "default"}
+                    color={party.electionId ? "success" : "default"}
                   />
                 </Box>
               }
@@ -275,6 +318,9 @@ const Parties: React.FC = () => {
                   sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}
                 >
                   <Typography variant="body2" color="text.secondary">
+                    {elections.find((e) => e.id === party.electionId)?.name ||
+                      "N/A"}{" "}
+                    |{" "}
                     {candidates.filter(
                       (entry) => Number(entry.partyId) === Number(party.id)
                     ).length || 0}{" "}
@@ -467,6 +513,27 @@ const Parties: React.FC = () => {
                 required
                 helperText="Enter the URL of the party symbol image"
               />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Election</InputLabel>
+                <Select
+                  value={partyData.electionId || ""}
+                  label="Election"
+                  onChange={(e) =>
+                    setPartyData({
+                      ...partyData,
+                      electionId: e.target.value,
+                    })
+                  }
+                >
+                  {elections.map((election) => (
+                    <MenuItem key={election.id} value={election.id}>
+                      {election.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
         </DialogContent>

@@ -139,6 +139,11 @@ const Elections: React.FC = () => {
       return;
     }
 
+    if (electionData.endDate < new Date()) {
+      showToast("The election must be a present one or a future one", "error");
+      return;
+    }
+
     // Combine date and time for start and end
     const startDateTime = new Date(
       electionData.startDate.getFullYear(),
@@ -195,7 +200,8 @@ const Elections: React.FC = () => {
         showToast("Election created successfully!", "success");
         handleCloseDialog();
       }
-    } catch {
+    } catch (error) {
+      console.error("Error creating election:", JSON.stringify(error, null, 2));
       showToast("Failed to create election. Please try again.", "error");
     } finally {
       setIsLoading(false);
@@ -499,7 +505,7 @@ const Elections: React.FC = () => {
           </Box>
         </Paper>
       </>
-      ){/* TODO : Add this if needed */}
+      {/* TODO : Add this if needed */}
       {/* : ( */}
       {/* <ElectionDetails election={selectedElection} /> */}
       {/* )} */}

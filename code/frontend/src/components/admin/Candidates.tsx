@@ -50,6 +50,7 @@ interface Candidate {
 interface Party {
   id: number;
   name: string;
+  electionId: number;
 }
 
 interface Election {
@@ -73,6 +74,7 @@ const Candidates: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [parties, setParties] = useState<Party[]>([]);
   const [elections, setElections] = useState<Election[]>([]);
+  const [isLoadingLocal, setIsLoadingLocal] = useState(false);
   const [candidateData, setCandidateData] = useState<Candidate>({
     id: 0,
     name: "",
@@ -92,10 +94,24 @@ const Candidates: React.FC = () => {
 
   // Fetch data on component mount
   useEffect(() => {
-    fetchCandidates();
-    fetchParties();
     fetchElections();
   }, []);
+
+  useEffect(() => {
+    if (elections.length > 0) {
+      fetchParties();
+    } else {
+      setIsLoadingLocal(false);
+    }
+  }, [elections]);
+
+  useEffect(() => {
+    if (parties.length > 0) {
+      fetchCandidates();
+    } else {
+      setIsLoadingLocal(false);
+    }
+  }, [parties]);
 
   const fetchCandidates = async () => {
     try {
@@ -108,13 +124,28 @@ const Candidates: React.FC = () => {
           method: "GET",
         },
       });
+      const activeElectionIds: number[] = elections
+        .filter((election) => election.status === "active")
+        .map((election) => election.id);
 
       if (response && response.status === 200) {
-        setCandidates(response.data.data);
+        const candidateDate: Candidate[] = response.data.data.map(
+          (candidate) => {
+            return {
+              ...candidate,
+              status: activeElectionIds.includes(Number(candidate.electionId))
+                ? "active"
+                : "inactive",
+            };
+          }
+        );
+        setCandidates(candidateDate);
       }
     } catch (error) {
       console.error("Error fetching candidates:", error);
       showToast("Failed to fetch candidates. Please try again.", "error");
+    } finally {
+      setIsLoadingLocal(false);
     }
   };
 
@@ -122,7 +153,10 @@ const Candidates: React.FC = () => {
     try {
       const response: {
         status: number;
-        data: { message: string; data: { id: number; name: string }[] };
+        data: {
+          message: string;
+          data: { id: number; name: string; electionId: number }[];
+        };
       } = await sendRequest({
         url: `${baseUrl}/api/admin/party/list`,
         options: {
@@ -134,6 +168,7 @@ const Candidates: React.FC = () => {
         const data: Party[] = response.data.data.map((party) => ({
           id: party.id,
           name: party.name,
+          electionId: party.electionId,
         }));
         setParties(data);
       }
@@ -144,6 +179,7 @@ const Candidates: React.FC = () => {
 
   const fetchElections = async () => {
     try {
+      setIsLoadingLocal(true);
       const response: {
         status: number;
         data: {
@@ -301,6 +337,15 @@ const Candidates: React.FC = () => {
       return;
     }
 
+    if (!candidateData.electionId) {
+      showToast("Please select an election.", "error");
+      return;
+    }
+
+    if (!candidateData.partyId) {
+      showToast("Please select an party.", "error");
+      return;
+    }
     if (!candidateData.candidateNumber.trim()) {
       showToast("Please enter a candidate number.", "error");
       return;
@@ -330,9 +375,18 @@ const Candidates: React.FC = () => {
         },
       });
 
+      const activeElectionIds: number[] = elections
+        .filter((election) => election.status === "active")
+        .map((election) => election.id);
+
       const candidateFull: Candidate = {
         ...candidateData,
-        status: candidateData.electionId ? "active" : "inactive",
+        status: activeElectionIds.some(
+          (electionId) =>
+            Number(electionId) === Number(candidateData.electionId)
+        )
+          ? "active"
+          : "inactive",
       };
       if (response && response.status === 201) {
         showToast("Candidate created successfully!", "success");
@@ -349,7 +403,7 @@ const Candidates: React.FC = () => {
     candidates,
   }) => (
     <List>
-      {isLoading ? (
+      {isLoadingLocal || isLoading ? (
         <Box
           sx={{
             display: "flex",
@@ -620,30 +674,6 @@ const Candidates: React.FC = () => {
               </Grid>
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
-                  <InputLabel>Party</InputLabel>
-                  <Select
-                    value={candidateData.partyId}
-                    label="Party"
-                    onChange={(e) =>
-                      setCandidateData({
-                        ...candidateData,
-                        partyId: e.target.value,
-                      })
-                    }
-                  >
-                    <MenuItem value="">
-                      <em>No Party</em>
-                    </MenuItem>
-                    {parties.map((party) => (
-                      <MenuItem key={party.id} value={party.id}>
-                        {party.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
                   <InputLabel>Election</InputLabel>
                   <Select
                     value={candidateData.electionId}
@@ -655,9 +685,6 @@ const Candidates: React.FC = () => {
                       })
                     }
                   >
-                    <MenuItem value="">
-                      <em>No Election</em>
-                    </MenuItem>
                     {elections.map((election) => (
                       <MenuItem key={election.id} value={election.id}>
                         {election.name}
@@ -666,6 +693,33 @@ const Candidates: React.FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth disabled={!candidateData.electionId}>
+                  <InputLabel>Party</InputLabel>
+                  <Select
+                    value={candidateData.partyId}
+                    label="Party"
+                    onChange={(e) =>
+                      setCandidateData({
+                        ...candidateData,
+                        partyId: e.target.value,
+                      })
+                    }
+                  >
+                    {parties
+                      .filter(
+                        (party) =>
+                          party.electionId === Number(candidateData.electionId)
+                      )
+                      .map((party) => (
+                        <MenuItem key={party.id} value={party.id}>
+                          {party.name}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth

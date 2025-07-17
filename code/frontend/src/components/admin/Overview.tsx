@@ -85,7 +85,7 @@ const Overview: React.FC = () => {
         status: number;
         data: {
           message: string;
-          data: { id: number; status: "active" | "inactive" }[];
+          data: { id: number; electionId: number }[];
         };
       } = await sendRequest({
         url: `${baseUrl}/api/admin/candidate/list`,
@@ -312,7 +312,11 @@ const Overview: React.FC = () => {
                 }}
               />
             }
-            color={theme.palette.success.main}
+            color={
+              stats.systemStatus === "Active"
+                ? theme.palette.success.main
+                : theme.palette.error.main
+            }
           />
         </Grid>
         <Grid item xs={12} md={4}>
@@ -330,7 +334,11 @@ const Overview: React.FC = () => {
                 }}
               />
             }
-            color={theme.palette.success.main}
+            color={
+              stats.blockchainStatus === "Active"
+                ? theme.palette.success.main
+                : theme.palette.error.main
+            }
           />
         </Grid>
         <Grid item xs={12} md={4}>

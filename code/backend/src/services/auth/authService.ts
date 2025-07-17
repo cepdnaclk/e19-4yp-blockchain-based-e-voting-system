@@ -52,7 +52,8 @@ export const getAccessTokeContent = (
   accessToken: string
 ): { username: string | null } => {
   try {
-    const res: any = jwt.verify(accessToken, accessTokenSecret);
+    const accessTokenSplitted = accessToken.split("Bearer ")[1];
+    const res: any = jwt.verify(accessTokenSplitted, accessTokenSecret);
     return { username: res.username };
   } catch (err) {
     console.error(err);

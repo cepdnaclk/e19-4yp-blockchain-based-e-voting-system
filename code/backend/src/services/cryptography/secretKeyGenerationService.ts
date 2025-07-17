@@ -20,7 +20,7 @@ export const secretKeyGenerationService = async (
       randomString = randomStringGenerator(lengthOfRandomString);
       let isDuplicate = false;
       for (const entry of userAccessKeyHashes) {
-        if (await validateHash(randomString, entry)) {
+        if (await validateHash(randomString, entry.hash)) {
           isDuplicate = true;
           break;
         }
@@ -35,8 +35,6 @@ export const secretKeyGenerationService = async (
           "userAccessKeyHash",
           JSON.stringify({
             hash: randomStringHash,
-            hasVoted: false,
-            votedAt: "",
           }),
         ],
       ]),

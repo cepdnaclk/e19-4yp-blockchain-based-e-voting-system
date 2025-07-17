@@ -29,12 +29,14 @@ import { useNavigate } from "react-router-dom";
 interface Candidate {
   id: number;
   name: string;
-  party: string;
+  partyId: number;
+  electionId: number;
   image_url: string;
   candidateNumber: number;
   votes?: number;
   percentage?: number;
   partyName?: string;
+  electionName?: string;
 }
 
 interface Party {
@@ -42,26 +44,38 @@ interface Party {
   partyName: string;
 }
 
-interface PartyFetchResposnse {
+interface Election {
+  id: number;
+  name: string;
+}
+
+interface ElectionsFetchResponse {
+  id: number;
+  name: string;
+  startDateTime: Date;
+  endDateTime: Date;
+}
+
+interface PartiesFetchResponse {
   id: number;
   name: string;
   symbol: string;
-  status: "active" | "inactive";
+  electionId: number;
 }
 
 interface CandidateRes {
+  id: number;
   address: string;
   birthday: string;
-  createdAt: string;
-  electionId: number;
   email: string;
-  id: number;
   mobileNumber: string;
   name: string;
   partyId: number;
   photo: string;
   status: "active" | "inactive";
   candidateNumber: number;
+  electionId: number;
+  createdAt: string;
 }
 
 const UserDashboard: React.FC = () => {
@@ -72,52 +86,97 @@ const UserDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [parties, setParties] = useState<Party[]>([]);
   const [isLoadingCandidate, setIsLoadingCandidate] = useState(false);
   const [isLoadingVoteCasting, setIsLoadingVoteCasting] = useState(false);
+  const [activeElections, setActiveElections] = useState<Election[]>([]);
+  const [activeParties, setActiveParties] = useState<Party[]>([]);
   const theme = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchParties();
+    fetchElections();
   }, []);
 
   useEffect(() => {
-    if (parties.length > 0) {
-      fetchCandidates();
+    if (activeElections.length > 0) {
+      fetchParties();
+    } else {
+      setIsLoadingCandidate(false);
     }
-  }, [parties]);
+  }, [activeElections]);
+
+  useEffect(() => {
+    if (activeParties.length > 0) {
+      fetchCandidates();
+    } else {
+      setIsLoadingCandidate(false);
+    }
+  }, [activeParties]);
 
   const fetchCandidates = async () => {
     try {
+      setIsLoadingCandidate(true);
       setError(null);
       const response: { data: { message: string; data: CandidateRes[] } } =
         await axios.get("http://localhost:5000/api/votes/candidates");
       const data: CandidateRes[] = response.data.data;
-      const filterdData = data.filter(
-        (candidate) => candidate.status === "active"
+      const activeCandidates = data.filter((candidate) =>
+        activeElections.some(
+          (election) => Number(election.id) === Number(candidate.electionId)
+        )
       );
-      const candidates: Candidate[] = filterdData.map(
+      const candidates: Candidate[] = activeCandidates.map(
         (candidate: CandidateRes) => ({
           id: candidate.id,
           name: candidate.name,
-          party: candidate.partyId ? candidate.partyId.toString() : "",
+          partyId: candidate.partyId,
+          electionId: candidate.electionId,
+          partyName:
+            activeParties.find(
+              (party) => Number(party.partyId) === Number(candidate.partyId)
+            )?.partyName || "N/A",
+          electionName:
+            activeElections.find(
+              (election) => Number(election.id) === Number(candidate.electionId)
+            )?.name || "N?A",
           image_url: candidate.photo,
           candidateNumber: candidate.candidateNumber,
-          partyName:
-            parties.find((party) => party.partyId === candidate.partyId)
-              ?.partyName || "Unknown",
         })
       );
       setCandidates(candidates);
       if (candidates.length > 0) {
         setSelectedCandidate(candidates[0]);
       }
-      setIsLoadingCandidate(false);
     } catch (error) {
       console.error("Error fetching candidates:", error);
       setError("Failed to fetch candidates. Please try again later.");
+    } finally {
       setIsLoadingCandidate(false);
+    }
+  };
+
+  const fetchElections = async () => {
+    try {
+      setIsLoadingCandidate(true);
+      setError(null);
+      const response: {
+        status: number;
+        data: { message: string; data: ElectionsFetchResponse[] };
+      } = await axios.get("http://localhost:5000/api/votes/elections");
+
+      if (response && response.status === 200) {
+        const activeElections: Election[] = response.data.data
+          .filter(
+            (election) =>
+              new Date(election.startDateTime) <= new Date() &&
+              new Date(election.endDateTime) >= new Date()
+          )
+          .map((election) => ({ id: election.id, name: election.name }));
+        setActiveElections(activeElections);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setError("Failed to fetch data. Please try again.");
     }
   };
 
@@ -127,18 +186,22 @@ const UserDashboard: React.FC = () => {
       setError(null);
       const response: {
         status: number;
-        data: { message: string; data: PartyFetchResposnse[] };
+        data: { message: string; data: PartiesFetchResponse[] };
       } = await axios.get("http://localhost:5000/api/votes/parties");
 
       if (response && response.status === 200) {
-        const fetchedParties: Party[] = response.data.data
-          .filter((party) => party.status === "active")
+        const activeParties: Party[] = response.data.data
+          .filter((party) =>
+            activeElections.some(
+              (election) => Number(election.id) === Number(party.electionId)
+            )
+          )
           .map((party) => ({ partyId: party.id, partyName: party.name }));
-        setParties(fetchedParties);
+        setActiveParties(activeParties);
       }
     } catch (error) {
-      console.error("Error fetching parties:", error);
-      setError("Failed to fetch parties. Please try again.");
+      console.error("Error fetching data:", error);
+      setError("Failed to fetch data. Please try again.");
     }
   };
 
@@ -406,7 +469,7 @@ const UserDashboard: React.FC = () => {
                                     variant="body2"
                                     color="text.secondary"
                                   >
-                                    {`Candidate Number - ${candidate.candidateNumber}  |  Party - ${candidate.partyName}`}
+                                    {`Candidate Number - ${candidate.candidateNumber}  |  Party - ${candidate.partyName} | Election - ${candidate.electionName}`}
                                   </Typography>
                                 </Box>
                               </Box>
@@ -470,6 +533,9 @@ const UserDashboard: React.FC = () => {
                       <Typography variant="body2" color="text.secondary">
                         {`Party - ${selectedCandidate.partyName}`}
                       </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {`Election - ${selectedCandidate.electionName}`}
+                      </Typography>
                     </Box>
                   )}
                   <Button
@@ -499,7 +565,7 @@ const UserDashboard: React.FC = () => {
                 selectedCandidate.name
               } under ${selectedCandidate.partyName?.toLocaleLowerCase()} with candidate number ${
                 selectedCandidate.candidateNumber
-              }? This action cannot be undone.`}
+              } for ${selectedCandidate.electionName?.toLocaleLowerCase()}? This action cannot be undone.`}
             </Typography>
           )}
         </DialogContent>

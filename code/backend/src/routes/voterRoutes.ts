@@ -1,13 +1,14 @@
 import { Router } from "express";
+import { voterCountController } from "../controllers/voter/voterCommonController";
+import { voterLoginController } from "../controllers/voter/voterLoginController";
 import { voterRegistrationController } from "../controllers/voter/voterRegistrationController";
-import { voterLogin } from "../controllers/voterLoginController";
 
 const router = Router();
 
 router.get("/registration", voterRegistrationController);
 
-router.post("/login", (req, res) => {
-  voterLogin(req, res);
-});
+router.post("/login", voterLoginController);
+
+router.get("/count", voterCountController);
 
 export default router;

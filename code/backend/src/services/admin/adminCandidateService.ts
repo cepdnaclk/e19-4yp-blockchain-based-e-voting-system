@@ -23,11 +23,10 @@ export const createCandidate = async (
     address: candidateData.address,
     mobileNumber: candidateData.mobileNumber,
     email: candidateData.email,
-    voteNumber: candidateData.voteNumber,
+    candidateNumber: candidateData.candidateNumber,
     photo: candidateData.photo ? candidateData.photo : undefined,
     partyId: candidateData.partyId ? candidateData.partyId : undefined,
     electionId: candidateData.electionId ? candidateData.electionId : undefined,
-    status: candidateData.status,
     createdAt: candidateData.createdAt || new Date(),
   };
   await blockchainPostPut(
@@ -53,11 +52,9 @@ export const getLastCandidate = async (): Promise<CandidateType | null> => {
       email: value.email,
       photo: value.photo || null,
       partyId: value.partyId || null,
-      voteNumber: value.voteNumber,
+      candidateNumber: value.candidateNumber,
       electionId: value.electionId || null,
-      status: value.status,
       createdAt: new Date(value.createdAt),
-      updatedAt: value.updatedAt ? new Date(value.updatedAt) : undefined,
     };
   } else {
     return null;
@@ -84,11 +81,10 @@ export const getAllCandidates = async (): Promise<CandidateType[]> => {
         email: value.email,
         photo: value.photo || null,
         partyId: value.partyId || null,
-        voteNumber: value.voteNumber,
+        candidateNumber: value.candidateNumber,
         electionId: value.electionId || null,
         status: value.status,
         createdAt: new Date(value.createdAt),
-        updatedAt: value.updatedAt ? new Date(value.updatedAt) : undefined,
       };
     });
     return candidates;

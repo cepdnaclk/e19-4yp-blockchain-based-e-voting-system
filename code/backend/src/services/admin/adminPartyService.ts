@@ -18,7 +18,7 @@ export const createParty = async (partyData: PartyType): Promise<PartyType> => {
     id: partyId,
     name: partyData.name,
     symbol: partyData.symbol,
-    status: partyData.status || "active",
+    electionId: partyData.electionId,
     createdAt: partyData.createdAt || new Date(),
   };
   const response: blockchainHistoryResponseType = await blockchainPostPut(
@@ -40,9 +40,8 @@ export const getLastParty = async (): Promise<PartyType | null> => {
       id: value.id,
       name: value.name,
       symbol: value.symbol,
-      status: value.status || "inactive",
+      electionId: value.elecitonId,
       createdAt: value.createdAt ? new Date(value.createdAt) : undefined,
-      updatedAt: value.updatedAt ? new Date(value.updatedAt) : undefined,
     };
   } else {
     return null;
@@ -60,11 +59,11 @@ export const getAllParties = async (): Promise<PartyType[]> => {
     const parties: PartyType[] = results.map((result) => {
       const value = JSON.parse(result.value);
       return {
+        id: value.id,
         name: value.name,
         symbol: value.symbol,
-        status: value.status,
+        electionId: value.electionId,
         createdAt: value.create ? new Date(value.create) : undefined,
-        updatedAt: value.updatedAt ? new Date(value.updatedAt) : undefined,
       };
     });
     return parties;

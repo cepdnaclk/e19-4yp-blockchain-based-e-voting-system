@@ -47,7 +47,6 @@ export const getLastElection = async (): Promise<ElectionType | null> => {
       startDateTime: new Date(value.startDateTime),
       endDateTime: new Date(value.endDateTime),
       createdAt: value.createdAt ? new Date(value.createdAt) : undefined,
-      updatedAt: value.updatedAt ? new Date(value.updatedAt) : undefined,
     };
   } else {
     return null;
@@ -68,11 +67,11 @@ export const getAllElections = async (): Promise<ElectionType[]> => {
     return elections.map((result) => {
       const value = JSON.parse(result.value);
       return {
+        id: value.id,
         name: value.name,
         startDateTime: new Date(value.startDateTime),
         endDateTime: new Date(value.endDateTime),
         createdAt: value.createdAt ? new Date(value.createdAt) : undefined,
-        updatedAt: value.updatedAt ? new Date(value.updatedAt) : undefined,
       };
     });
   }

@@ -8,27 +8,33 @@ import {
 import { sendError, sendSuccess } from "../../utils/responseHandler";
 
 export const createPartyController = async (req: Request, res: Response) => {
-  const { name, symbol }: { name: string; symbol: string } = req.body;
+  const {
+    name,
+    symbol,
+    electionId,
+  }: { name: string; symbol: string; electionId: string } = req.body;
 
   if (!name || !symbol) {
     sendError(res, 400, {
-      message: "Party name and symbol are required",
+      message:
+        "The following fields are missing:" + name
+          ? " Party name, "
+          : "" + symbol
+          ? " Party symbol, "
+          : "",
+    });
+    return;
+  }
+
+  if (!electionId) {
+    sendError(res, 400, {
+      message: "A party must have an eleciton assocaiated to it",
     });
     return;
   }
 
   try {
-    // Check if party with same name already exists
-    const parties: PartyType[] = await getAllParties();
-    const existingParty = parties.find((party) => party.name === name);
-    if (existingParty) {
-      sendError(res, 409, {
-        message: "Party with this name already exists",
-      });
-      return;
-    }
-
-    const party = await createParty({ name, symbol });
+    const party = await createParty({ name, symbol, electionId });
     sendSuccess(res, 201, {
       message: "Party created successfully",
       data: party,

@@ -18,8 +18,8 @@ export const createCandidateController = async (
     mobileNumber,
     email,
     photo,
+    candidateNumber,
     partyId,
-    voteNumber,
     electionId,
   }: {
     name: string;
@@ -28,8 +28,8 @@ export const createCandidateController = async (
     mobileNumber: string;
     email: string;
     photo?: string;
+    candidateNumber: string;
     partyId?: number;
-    voteNumber: string;
     electionId?: number;
   } = req.body;
   if (
@@ -38,11 +38,21 @@ export const createCandidateController = async (
     !address ||
     !mobileNumber ||
     !email ||
-    !voteNumber
+    !candidateNumber ||
+    !partyId ||
+    !electionId
   ) {
     sendError(res, 400, {
       message:
-        "Name, birthday, address, mobile number, email, and vote number are required",
+        "The following fields are missing: " +
+        (!name ? "Name, " : "") +
+        (!birthday ? "Birthday, " : "") +
+        (!address ? "Address, " : "") +
+        (!mobileNumber ? "Mobile Number, " : "") +
+        (!email ? "Email, " : "") +
+        (!candidateNumber ? "Candidate Number" : "") +
+        (!partyId ? "Party, " : "") +
+        (!electionId ? "Election" : ""),
     });
     return;
   }
@@ -52,29 +62,33 @@ export const createCandidateController = async (
 
     // Check if candidate with same email already exists
     const existingCandidateByEmail = candidates.find(
-      (entry) => entry.email === email
+      (entry) => entry.email === email && entry.electionId === electionId
     );
     if (existingCandidateByEmail) {
       sendError(res, 409, {
-        message: "Candidate with this email already exists",
+        message: "Candidate with this email already exists in this election",
       });
       return;
     }
 
     // Check if candidate with same mobile number already exists
     const existingCandidateByMobile = candidates.find(
-      (entry) => entry.mobileNumber === mobileNumber
+      (entry) =>
+        entry.mobileNumber === mobileNumber && entry.electionId === electionId
     );
     if (existingCandidateByMobile) {
       sendError(res, 409, {
-        message: "Candidate with this mobile number already exists",
+        message:
+          "Candidate with this mobile number already exists in this election",
       });
       return;
     }
 
     // Check if candidate with same vote number in the same election already exists
     const existingCandidateByVoteNumber = candidates.find(
-      (entry) => entry.voteNumber === voteNumber
+      (entry) =>
+        entry.candidateNumber === candidateNumber &&
+        entry.electionId === electionId
     );
     if (existingCandidateByVoteNumber) {
       sendError(res, 409, {
@@ -92,9 +106,8 @@ export const createCandidateController = async (
       email,
       photo,
       partyId,
-      voteNumber,
       electionId,
-      status: electionId ? "active" : "inactive",
+      candidateNumber,
       createdAt: new Date(),
     });
 

@@ -39,14 +39,41 @@ export const createNewElectionController = async (
   }
 
   try {
-    // Check if election with same name already exists
+    // Check for overlapping dates
     const elections = await getAllElections();
+    let hasOverlap = false;
+    for (const election of elections) {
+      console.log("Checking election:", election);
+      console.log("Start Date:", startDateTime);
+      console.log("End date ", endDateTime);
+      if (
+        (new Date(startDateTime) >= new Date(election.startDateTime) &&
+          new Date(startDateTime) <= new Date(election.endDateTime)) ||
+        (new Date(endDateTime) >= new Date(election.startDateTime) &&
+          new Date(endDateTime) <= new Date(election.endDateTime)) ||
+        (new Date(startDateTime) <= new Date(election.startDateTime) &&
+          new Date(endDateTime) >= new Date(election.endDateTime))
+      ) {
+        hasOverlap = true;
+        break;
+      }
+    }
+
+    if (hasOverlap) {
+      sendError(res, 409, {
+        message: messages.election.hasOverlappingDays,
+        data: { startDateTime: startDateTime, endDateTime: endDateTime },
+      });
+      return;
+    }
+
+    // Check if election with same name already exists
     const existingElection = elections.find(
       (election) => election.name === name
     );
     if (existingElection) {
       sendError(res, 409, {
-        message: "Election with this name already exists",
+        message: messages.election.duplicateName,
       });
       return;
     }

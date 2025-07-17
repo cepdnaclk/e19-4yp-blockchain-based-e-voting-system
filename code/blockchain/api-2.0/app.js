@@ -33,11 +33,10 @@ app.use(
   expressJWT({
     secret: constants.jwt_secret,
   }).unless({
-    path: ["/user/register", "/user/login", "/admin/register"],
+    path: ["/user/register", "/user/login", "/admin/register", "/api/test"],
   })
 );
 app.use(bearerToken());
-
 logger.level = "debug";
 
 app.use((req, res, next) => {
@@ -45,7 +44,8 @@ app.use((req, res, next) => {
   if (
     req.originalUrl.indexOf("/user/register") >= 0 ||
     req.originalUrl.indexOf("/user/login") >= 0 ||
-    req.originalUrl.indexOf("/admin/register") >= 0
+    req.originalUrl.indexOf("/admin/register") >= 0 ||
+    req.originalUrl.indexOf("/api/test") >= 0
   ) {
     return next();
   }
@@ -91,6 +91,9 @@ function getErrorMessage(field) {
   };
   return response;
 }
+app.get("/api/test", function (req, res) {
+  res.status(200).json({ message: "Blockchain sysytem is working" });
+});
 
 // Register and enroll user
 app.post("/admin/register", async function (req, res) {

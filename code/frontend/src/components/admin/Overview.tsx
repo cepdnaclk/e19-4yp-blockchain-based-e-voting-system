@@ -32,7 +32,9 @@ const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
 const Overview: React.FC = () => {
   const theme = useTheme();
   const { showToast } = useToast();
-
+  const [activeElections, setActiveElections] = useState<
+    { electionId: number }[]
+  >([]);
   const { sendRequest } = useFetch({});
   const [stats, setstats] = useState<Stats>({
     totalVoters: 0,
@@ -66,13 +68,20 @@ const Overview: React.FC = () => {
           method: "GET",
         },
       });
-      const activeElections = response.data.data.filter(
-        (entry) =>
-          new Date(entry.startDateTime) < new Date() &&
-          new Date(entry.endDateTime) > new Date()
-      ).length;
+      const activeElections = response.data.data
+        .filter(
+          (entry) =>
+            new Date(entry.startDateTime) < new Date() &&
+            new Date(entry.endDateTime) > new Date()
+        )
+        .map((entry) => ({ electionId: entry.id }));
 
-      setstats((prev) => ({ ...prev, activeElections: activeElections }));
+      setActiveElections(activeElections);
+
+      setstats((prev) => ({
+        ...prev,
+        activeElections: activeElections.length,
+      }));
     } catch (err) {
       console.error(err);
       showToast("Unexpected error occured", "error");
@@ -93,9 +102,10 @@ const Overview: React.FC = () => {
           method: "GET",
         },
       });
-
-      const activeCandidates = response.data.data.filter(
-        (entry) => entry.status === "active"
+      const activeCandidates = response.data.data.filter((entry) =>
+        activeElections.some(
+          (election) => Number(election.electionId) === Number(entry.electionId)
+        )
       ).length;
 
       setstats((prev) => ({ ...prev, activeCandidates: activeCandidates }));

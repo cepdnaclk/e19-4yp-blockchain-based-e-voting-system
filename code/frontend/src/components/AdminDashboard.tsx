@@ -39,6 +39,7 @@ import Overview from "./admin/Overview";
 import Parties from "./admin/Parties";
 import LoadingOverlay from "./LoadingOverlay";
 import Toast from "./Toast";
+import Settings from "./admin/Settings";
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 80;
@@ -215,6 +216,7 @@ const AdminDashboardContent: React.FC = () => {
         <ListItem disablePadding sx={{ mb: 1 }}>
           <Tooltip title={isCollapsed ? "Settings" : ""} placement="right">
             <ListItemButton
+              onClick={() => setSelectedTab("settings")}
               sx={{
                 borderRadius: 2,
                 justifyContent: isCollapsed ? "center" : "flex-start",
@@ -273,6 +275,8 @@ const AdminDashboardContent: React.FC = () => {
         return <Candidates />;
       case "parties":
         return <Parties />;
+      case "settings":
+        return <Settings />;
       default:
         return <Overview />;
     }
@@ -345,7 +349,7 @@ const AdminDashboardContent: React.FC = () => {
               </IconButton>
             </Tooltip>
             <Tooltip title="Settings">
-              <IconButton>
+              <IconButton onClick={() => setSelectedTab("settings")}>
                 <SettingsIcon />
               </IconButton>
             </Tooltip>

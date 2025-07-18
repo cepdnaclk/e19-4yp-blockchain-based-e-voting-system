@@ -39,6 +39,11 @@ const messages = {
   vote: {
     voterHasAlreadyVoted: "Voter has already voted",
     candidateDoesNotExist: "Candidate does not exists",
+    invalidCandidateDetails: "Invalid candidate details",
+    voteCastedSuccessfully: "Vote is casted successfully",
+  },
+  results: {
+    resultTallyingSuccessfull: "Result tallying completed successfully",
   },
 };
 

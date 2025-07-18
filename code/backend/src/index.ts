@@ -6,6 +6,7 @@ import express, { Express } from "express";
 import mainRouter from "./routes/mainRouter";
 import voterLoginRoutes from "./routes/voterRoutes";
 import voteRoutes from "./routes/voteRoutes";
+import resultRouter from "./routes/resultsRouter";
 import setupMiddleware from "./middleware/setupMiddleware";
 import debugMiddleware from "./middleware/debugMiddleware";
 import errorHandling from "./middleware/errorHandlingMiddleware";
@@ -26,6 +27,9 @@ app.use("/api/votes", voteRoutes);
 
 // Voter login router
 app.use("/api/voter", voterLoginRoutes);
+
+// Voting router
+app.use("/api/results", resultRouter);
 
 // Error handling middleware
 errorHandling(app);

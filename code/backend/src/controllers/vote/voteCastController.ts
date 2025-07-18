@@ -58,7 +58,7 @@ export const castVote = async (req: Request, res: Response) => {
 
     const voteRecord: voteRecordType = {
       voterSecretKeyHash: secretKeyHash,
-      hasVoted: false,
+      hasVoted: true,
       candidateId: candidate.id,
       electionId: candidate.electionId,
       partyId: candidate.partyId,

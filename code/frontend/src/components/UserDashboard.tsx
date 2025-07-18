@@ -1,6 +1,5 @@
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
 import LogoutIcon from "@mui/icons-material/Logout";
-import LoadingOverlay from "./LoadingOverlay";
 import {
   Alert,
   AppBar,
@@ -25,6 +24,8 @@ import RadioGroup from "@mui/material/RadioGroup";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import LoadingOverlay from "./LoadingOverlay";
+import SuccessOverlay from "./SuccessOverlay";
 
 interface Candidate {
   id: number;
@@ -84,12 +85,12 @@ const UserDashboard: React.FC = () => {
   );
   const [openDialog, setOpenDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [isLoadingCandidate, setIsLoadingCandidate] = useState(false);
   const [isLoadingVoteCasting, setIsLoadingVoteCasting] = useState(false);
   const [activeElections, setActiveElections] = useState<Election[]>([]);
   const [activeParties, setActiveParties] = useState<Party[]>([]);
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const theme = useTheme();
   const navigate = useNavigate();
 
@@ -224,22 +225,20 @@ const UserDashboard: React.FC = () => {
       return;
     }
     try {
+      setError(null);
       setOpenDialog(false);
       setIsLoadingVoteCasting(true);
 
-      const response = await axios.post(
-        "http://localhost:5000/api/votes/cast",
-        {
-          candidateId: selectedCandidate.id,
-          votersSecretKey: votersSecretKey,
-        }
-      );
-      const data = response.data as { message?: string; error?: string };
-      if (data && data.message === "Vote cast successfully") {
-        setSuccess("Your vote has been cast!");
-        setOpenDialog(false);
-      } else {
-        setError("Failed to cast vote.");
+      const response: {
+        status: number;
+        data: { message: string; data: { secretKeyHash: string } };
+      } = await axios.post("http://localhost:5000/api/votes/cast", {
+        candidateId: selectedCandidate.id,
+        secretKeyHash: votersSecretKey,
+      });
+
+      if (response.status === 201 && response.data.data) {
+        setShowSuccessOverlay(true);
       }
     } catch (err) {
       console.error("Error casting vote:", err);
@@ -373,12 +372,12 @@ const UserDashboard: React.FC = () => {
                 </Zoom>
               )}
 
-              {success && (
-                <Zoom in>
-                  <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>
-                    {success}
-                  </Alert>
-                </Zoom>
+              {showSuccessOverlay && (
+                <SuccessOverlay
+                  open={showSuccessOverlay}
+                  onLogout={handleLogout}
+                  message="Your vote has been cast successfully."
+                />
               )}
 
               <Box
@@ -561,11 +560,14 @@ const UserDashboard: React.FC = () => {
         <DialogContent>
           {selectedCandidate && (
             <Typography>
-              {`Are you sure you want to vote for ${
-                selectedCandidate.name
-              } under ${selectedCandidate.partyName?.toLocaleLowerCase()} with candidate number ${
-                selectedCandidate.candidateNumber
-              } for ${selectedCandidate.electionName?.toLocaleLowerCase()}? This action cannot be undone.`}
+              Are you sure you want to vote for{" "}
+              <strong>{selectedCandidate.name}</strong> under{" "}
+              <strong>{selectedCandidate.partyName}</strong> with candidate
+              <strong>
+                {" "}
+                Number{selectedCandidate.candidateNumber}
+              </strong> for <strong>{selectedCandidate.electionName}</strong>?
+              This action cannot be undone.
             </Typography>
           )}
         </DialogContent>

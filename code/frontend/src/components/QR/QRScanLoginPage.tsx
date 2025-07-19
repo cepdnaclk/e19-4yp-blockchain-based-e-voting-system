@@ -1,37 +1,53 @@
-import React, { useState } from "react";
 import { QrReader } from "@blackbox-vision/react-qr-reader";
-import { Box, Button, Container, Typography, Paper, CircularProgress, Alert } from "@mui/material";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import { Box, Button, Container, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import LoadingOverlay from "../LoadingOverlay";
 
 const QRScanLoginPage: React.FC = () => {
   const [votersSecretKey, setVotersSecretKey] = useState<string | null>(null);
-  const [pollingStationSecretKey, setPollingStationSecretKey] = useState<string | null>(null);
+  const [pollingStationSecretKey, setPollingStationSecretKey] = useState<
+    string | null
+  >(null);
   const [step, setStep] = useState<1 | 2>(1);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [scannedData, setScannedData] = useState<string | null>(null);
+
   const theme = useTheme();
   const navigate = useNavigate();
 
   const handleScan = (data: string | null) => {
-    setLoading(false);
-    if (!data) return;
-    if (step === 1) {
-      setVotersSecretKey(data);
-      setStep(2);
-      setLoading(true);
-    } else if (step === 2) {
-      setPollingStationSecretKey(data);
-    }
+    if (data) setScannedData(data);
   };
+
+  useEffect(() => {
+    if (!scannedData) return;
+
+    if (step === 1 && !votersSecretKey) {
+      setVotersSecretKey(scannedData);
+      setStep(2);
+      setScannedData(null);
+    } else if (step === 2 && !pollingStationSecretKey) {
+      if (scannedData === votersSecretKey) {
+        return;
+      }
+      setPollingStationSecretKey(scannedData);
+      setScannedData(null);
+    }
+  }, [scannedData, step, votersSecretKey, pollingStationSecretKey]);
+
+  useEffect(() => {
+    if (votersSecretKey && pollingStationSecretKey) {
+      handleSubmit();
+      setSubmitting(true);
+    }
+  }, [votersSecretKey, pollingStationSecretKey]);
 
   const handleSubmit = async () => {
     if (!votersSecretKey || !pollingStationSecretKey) return;
-    setSubmitting(true);
-    setError(null);
     try {
       const response: { status: number; data: { message: string } } =
         await axios.post("http://localhost:5000/api/voter/login", {
@@ -43,9 +59,7 @@ const QRScanLoginPage: React.FC = () => {
         navigate("/user/dashboard");
       }
     } catch (err) {
-      setError("Login failed. Please check your credentials.");
-    } finally {
-      setSubmitting(false);
+      console.error("Login error:", err);
     }
   };
 
@@ -53,8 +67,7 @@ const QRScanLoginPage: React.FC = () => {
     setVotersSecretKey(null);
     setPollingStationSecretKey(null);
     setStep(1);
-    setError(null);
-    setLoading(true);
+    setScannedData(null);
   };
 
   return (
@@ -82,6 +95,7 @@ const QRScanLoginPage: React.FC = () => {
         },
       }}
     >
+      <LoadingOverlay isLoading={submitting} message="Logging in..." />
       <Container
         maxWidth="sm"
         sx={{
@@ -92,68 +106,49 @@ const QRScanLoginPage: React.FC = () => {
           zIndex: 1,
         }}
       >
-        <Paper elevation={6} sx={{ p: 4, width: "100%", textAlign: "center", position: "relative" }}>
+        <Paper
+          elevation={6}
+          sx={{
+            p: 4,
+            width: "100%",
+            textAlign: "center",
+            position: "relative",
+          }}
+        >
           <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 2 }}>
-            <QrCodeScannerIcon sx={{ fontSize: 40, mb: -1, mr: 1 }} /> QR Code Login
+            <QrCodeScannerIcon sx={{ fontSize: 40, mb: -1, mr: 1 }} /> QR Code
+            Login
           </Typography>
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-          {submitting && (
-            <Box sx={{ mb: 2 }}>
-              <CircularProgress color="primary" />
-              <Typography variant="body2" sx={{ mt: 1 }}>Logging in...</Typography>
-            </Box>
-          )}
-          {!submitting && !pollingStationSecretKey ? (
+          {!(votersSecretKey && pollingStationSecretKey) ? (
             <>
               <Typography variant="h6" sx={{ mt: 2, mb: 2 }}>
-                {step === 1 ? "Scan Voter's Secret Key QR Code" : "Scan Polling Station Secret Key QR Code"}
+                {step === 1
+                  ? "Please scan the first QR code (Voter's Secret Key)."
+                  : "Please scan the second QR code (Polling Station Secret Key)."}
               </Typography>
-              {loading && (
-                <Box sx={{ mb: 2 }}>
-                  <CircularProgress color="primary" />
-                  <Typography variant="body2" sx={{ mt: 1 }}>Initializing camera...</Typography>
-                </Box>
+              {!submitting && (
+                <QrReader
+                  constraints={{ facingMode: "environment" }}
+                  onResult={(result) => {
+                    if (result) handleScan(result.getText());
+                  }}
+                  videoContainerStyle={{ borderRadius: 8, overflow: "hidden" }}
+                  videoStyle={{ width: "100%", height: "100%" }}
+                  containerStyle={{ width: 320, height: 320, margin: "0 auto" }}
+                />
               )}
-              <QrReader
-                constraints={{ facingMode: "environment" }}
-                onResult={(result, error) => {
-                  setLoading(false);
-                  if (!!result) handleScan(result.getText());
-                  if (!!error && error.name !== "NotFoundException") setError("Camera error: " + error.message);
-                }}
-                videoContainerStyle={{ borderRadius: 8, overflow: "hidden" }}
-                videoStyle={{ width: "100%", height: "100%" }}
-                containerStyle={{ width: 320, height: 320, margin: "0 auto" }}
-              />
               <Box sx={{ mt: 2 }}>
-                <Button variant="outlined" color="primary" onClick={handleReset}>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={handleReset}
+                >
                   Reset
                 </Button>
               </Box>
             </>
           ) : (
-            <>
-              <Typography variant="h6" sx={{ mt: 2 }}>Scanned QR Codes:</Typography>
-              <Paper variant="outlined" sx={{ p: 2, mt: 1, mb: 2, wordBreak: "break-all" }}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>Voter's Secret Key:</Typography>
-                <pre style={{ margin: 0, fontFamily: "monospace" }}>{votersSecretKey}</pre>
-                <Typography variant="body2" sx={{ fontWeight: 600, mt: 2 }}>Polling Station Secret Key:</Typography>
-                <pre style={{ margin: 0, fontFamily: "monospace" }}>{pollingStationSecretKey}</pre>
-              </Paper>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<QrCodeScannerIcon />}
-                onClick={handleSubmit}
-                disabled={submitting}
-                sx={{ mr: 2 }}
-              >
-                Login
-              </Button>
-              <Button variant="outlined" color="primary" onClick={handleReset}>
-                Scan Again
-              </Button>
-            </>
+            ""
           )}
         </Paper>
       </Container>
@@ -161,4 +156,4 @@ const QRScanLoginPage: React.FC = () => {
   );
 };
 
-export default QRScanLoginPage; 
+export default QRScanLoginPage;

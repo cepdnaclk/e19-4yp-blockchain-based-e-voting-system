@@ -78,7 +78,7 @@ The Candidate Registration Module ensures only eligible candidates are registere
 
 ### Voting Process
 
-![votin-process-high-level-overview](assets/images/voting-phase-II.png)
+![votin-process-high-level-overview](assets/images/voting-phase-II.PNG)
 The Voting Module enables voters to cast encrypted votes securely using threshold cryptography and homomorphic encryption. Votes are stored off-chain in IPFS, while only their hashes are recorded on the blockchain.
 
 **Components:**
@@ -99,7 +99,7 @@ The Voting Module enables voters to cast encrypted votes securely using threshol
 
 ### Counting and Result Publication
 
-![Diagram showing the counting and result publication process, including homomorphic vote aggregation, threshold decryption, and blockchain result storage.](assets/images/counting-phase-II.png)
+![Diagram showing the counting and result publication process, including homomorphic vote aggregation, threshold decryption, and blockchain result storage.](assets/images/counting-phase-II.PNG)
 The Counting & Result Module aggregates encrypted votes off-chain using homomorphic encryption and publishes the final result on the blockchain.
 
 **Components:**

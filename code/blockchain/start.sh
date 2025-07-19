@@ -39,6 +39,10 @@ pwd
 
 
 sleep 2
+rm -rf ./Explorer/crypto-config
+ls -lh ./Explorer
+cp -r ./artifacts/channel/crypto-config ./Explorer   
+ls -lh ./Explorer
 cd ./Explorer
 docker-compose up -d
 

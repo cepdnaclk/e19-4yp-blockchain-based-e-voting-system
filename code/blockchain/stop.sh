@@ -1,10 +1,10 @@
 cd ./artifacts
-docker-compose down
+docker-compose down -v
 
 sleep 2
 
 cd ../Explorer
-docker-compose down
+docker-compose down -v
 
 sleep 2
 

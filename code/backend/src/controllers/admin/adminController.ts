@@ -3,7 +3,7 @@ import messages from "../../common/constants/messages";
 import { adminRegisterService } from "../../services/admin/adminRegisterService";
 import {
   generateAccessToken,
-  validatePasswrd,
+  validateHash,
   validateUserName,
 } from "../../services/auth/authService";
 import { sendError, sendSuccess } from "../../utils/responseHandler";
@@ -11,6 +11,8 @@ import { AdminUserType } from "../../common/types/adminTypes";
 import { getAdminUsersByUsername } from "../../services/admin/adminCommonServices";
 import { adminLoginService } from "../../services/admin/adminLoginService";
 import { adminLogoutService } from "../../services/admin/adminLogoutService";
+import { blockchainHistoryResponseType } from "../../common/types/blockchainResponseTypes";
+import { blockchainFetchByKey } from "../../services/blockchain/blockchainServices";
 
 export const adminRegisterController = async (req: Request, res: Response) => {
   const registrationAllowed = process.env.ADMIN_REGISTRATION_ALLOWED || false;
@@ -32,7 +34,14 @@ export const adminRegisterController = async (req: Request, res: Response) => {
   }
 
   try {
-    if (await validateUserName(username)) {
+    const adminDataHistory = await blockchainFetchByKey("admin", true);
+    const userNames = adminDataHistory.result?.map((item) => {
+      const value = JSON.parse(item.value);
+      return value.username;
+    });
+    const userNameExists = userNames?.find((name) => name === username);
+
+    if (userNameExists) {
       sendError(res, 409, {
         message: messages.registration.userNameExists,
         data: {
@@ -41,14 +50,18 @@ export const adminRegisterController = async (req: Request, res: Response) => {
       });
       return;
     }
-    const response: { id: number } = await adminRegisterService(
+    const response: blockchainHistoryResponseType = await adminRegisterService(
       username,
       password
     );
+
+    const responseValue: { username: string; hashedPassword: string } =
+      response.result ? JSON.parse(response?.result[0].value) : null;
+
     sendSuccess(res, 201, {
       message: messages.registration.registrationSuccess,
       data: {
-        userId: response.id,
+        username: responseValue.username,
       },
     });
   } catch (error: any) {
@@ -61,9 +74,9 @@ export const adminLoginController = async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   try {
-    const users: AdminUserType[] = await getAdminUsersByUsername(username);
+    const user: AdminUserType | null = await getAdminUsersByUsername(username);
 
-    if (users.length === 0) {
+    if (user === null) {
       sendError(res, 404, {
         message: messages.login.userNotFound,
         data: { username: username },
@@ -71,15 +84,7 @@ export const adminLoginController = async (req: Request, res: Response) => {
       return;
     }
 
-    if (users.length > 1) {
-      sendError(res, 409, {
-        message: messages.login.multipleUsersFound,
-        data: { username: username },
-      });
-      return;
-    }
-
-    const isPasswordMatch = await validatePasswrd(password, users[0].password);
+    const isPasswordMatch = await validateHash(password, user.hashedPassword);
 
     if (isPasswordMatch) {
       const accessToken = generateAccessToken(username);

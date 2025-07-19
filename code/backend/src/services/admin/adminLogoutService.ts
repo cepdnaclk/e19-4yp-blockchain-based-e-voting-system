@@ -1,7 +1,6 @@
-import { Request, Response } from "express";
-import { dbQuery } from "../common/dbService";
+import { Request } from "express";
 import { getAccessTokeContent } from "../auth/authService";
-import { sendError, sendSuccess } from "../../utils/responseHandler";
+import { dbQuery } from "../common/dbService";
 
 export const adminLogoutService = async (
   req: Request
@@ -9,7 +8,6 @@ export const adminLogoutService = async (
   const accessTokenContent = getAccessTokeContent(
     req.headers.authorization || ""
   );
-
   const query =
     "UPDATE admin_data SET refresh_token = NULL WHERE user_name = $1 RETURNING user_name";
   const params = [accessTokenContent.username];

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Alert,
@@ -6,16 +6,13 @@ import {
   Slide,
   Snackbar,
   Typography,
-} from '@mui/material';
-import {
-  Close as CloseIcon,
-  Error as ErrorIcon,
-} from '@mui/icons-material';
+} from "@mui/material";
+import { Close as CloseIcon, Error as ErrorIcon } from "@mui/icons-material";
 
 export interface ToastMessage {
   id: string;
   message: string;
-  severity?: 'error' | 'warning' | 'info' | 'success';
+  severity?: "error" | "warning" | "info" | "success";
   duration?: number;
 }
 
@@ -53,30 +50,30 @@ const Toast: React.FC<ToastProps> = ({ message, onClose }) => {
       open={open}
       autoHideDuration={message.duration || 10000}
       onClose={handleAutoClose}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       TransitionComponent={Slide}
-      TransitionProps={{ direction: 'left' }}
+      TransitionProps={{ direction: "left" }}
       sx={{
-        '& .MuiSnackbar-root': {
+        "& .MuiSnackbar-root": {
           bottom: 24,
           right: 24,
         },
       }}
     >
       <Alert
-        severity={message.severity || 'error'}
+        severity={message.severity || "error"}
         onClose={handleClose}
         sx={{
-          width: '100%',
+          width: "100%",
           minWidth: 300,
           maxWidth: 450,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
           borderRadius: 2,
-          '& .MuiAlert-icon': {
+          "& .MuiAlert-icon": {
             fontSize: 24,
           },
-          '& .MuiAlert-message': {
-            fontSize: '0.875rem',
+          "& .MuiAlert-message": {
+            fontSize: "0.875rem",
             fontWeight: 500,
           },
         }}
@@ -87,9 +84,9 @@ const Toast: React.FC<ToastProps> = ({ message, onClose }) => {
             size="small"
             onClick={handleClose}
             sx={{
-              color: 'inherit',
-              '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.1)',
+              color: "inherit",
+              "&:hover": {
+                backgroundColor: "rgba(255,255,255,0.1)",
               },
             }}
           >
@@ -97,11 +94,11 @@ const Toast: React.FC<ToastProps> = ({ message, onClose }) => {
           </IconButton>
         }
       >
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
           <ErrorIcon sx={{ fontSize: 20, mt: 0.25 }} />
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-              Error
+              {message.severity?.toUpperCase() || "ERROR"}
             </Typography>
             <Typography variant="body2" sx={{ lineHeight: 1.4 }}>
               {message.message}
@@ -113,4 +110,4 @@ const Toast: React.FC<ToastProps> = ({ message, onClose }) => {
   );
 };
 
-export default Toast; 
+export default Toast;

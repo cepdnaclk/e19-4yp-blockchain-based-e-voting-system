@@ -1,58 +1,46 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import {
+  Alert,
   Box,
   Button,
   Container,
+  Paper,
   TextField,
   Typography,
-  Paper,
   useTheme,
-  Alert,
 } from "@mui/material";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import axios from "axios";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 // Navigation component for top navigation bar
 import Navigation from "./Navigation";
 
 const UserLogin: React.FC = () => {
-  // State to store user's secret key input
-  const [secretKey, setSecretKey] = useState("");
-  // State to handle and display error messages
-  const [error, setError] = useState("");
-  // Hook to programmatically navigate between routes
+  const [votersSecretKey, setVotersSecretKey] = useState("");
+  const [pollingStationSecretKey, setPollingStationSecretKey] = useState("");
   const navigate = useNavigate();
-  // Get theme object from MUI to apply dynamic styles
   const theme = useTheme();
-  // Interface describing the expected shape of the login response
-  interface UserLoginResponse {
-    voter_id: string | number;
-    [key: string]: any;
-  }
+  const [error, setError] = useState<string | null>(null);
+
   // Function to handle form submission (login logic)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");// Clear any previous errors
     try {
+      setError(null); // Reset error state
       // Make POST request to backend API with secretKey
-      const response = await axios.post<UserLoginResponse>(
-        "http://localhost:5000/api/voter/userlogin",
-        {
-          secretKey,
-        }
-      );
-      // If login is successful and voter_id is present, store in localStorage and navigate to dashboard
-      if (response.data && response.data.voter_id) {
-        localStorage.setItem("voterId", String(response.data.voter_id));
+      const response: { status: number; data: { message: string } } =
+        await axios.post("http://localhost:5000/api/voter/login", {
+          votersKey: votersSecretKey,
+          pollingStationKey: pollingStationSecretKey,
+        });
+
+      if (response.status === 200 && response.data) {
+        localStorage.setItem("votersSecretKey", String(response.data.message));
         navigate("/user/dashboard");
-      } else {
-        setError("Login failed: Unexpected response.");
       }
-    } catch (err: any) {
-      setError(
-        err.response?.data?.error ||
-          "Login failed. Please check your secret key and try again."
-      );
+    } catch (err) {
+      console.error("Login failed:", err);
+      setError("Login failed. Please check your credentials.");
     }
   };
 
@@ -130,7 +118,7 @@ const UserLogin: React.FC = () => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              mb: 3,
+              mb: 2,
               boxShadow: `0 0 20px ${theme.palette.primary.main}40`,
             }}
           >
@@ -157,25 +145,56 @@ const UserLogin: React.FC = () => {
             color="text.secondary"
             align="center"
             sx={{
-              mb: 4,
+              mb: 2,
               fontWeight: 400,
             }}
           >
             Enter your secret key to access the voting system
           </Typography>
+          {error && (
+            <Alert severity="error" sx={{ mb: 1 }}>
+              {error}
+            </Alert>
+          )}
           <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }}>
             <TextField
               margin="normal"
               required
               fullWidth
-              id="secretKey"
-              label="Secret Key"
-              name="secretKey"
+              id="votersSecretKey"
+              label="Voters Secret Key"
+              name="votersSecretKey"
               type="password"
               autoComplete="off"
               autoFocus
-              value={secretKey}
-              onChange={(e) => setSecretKey(e.target.value)}
+              value={votersSecretKey}
+              onChange={(e) => setVotersSecretKey(e.target.value)}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": {
+                    borderColor: theme.palette.primary.main,
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: theme.palette.primary.main,
+                    borderWidth: 2,
+                  },
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: theme.palette.primary.main,
+                },
+              }}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="pollingStationSecretKey"
+              label="Polling StationSecret Key"
+              name="pollingStationSecretKey"
+              type="password"
+              autoComplete="off"
+              value={pollingStationSecretKey}
+              onChange={(e) => setPollingStationSecretKey(e.target.value)}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "&:hover fieldset": {
@@ -197,7 +216,7 @@ const UserLogin: React.FC = () => {
               variant="contained"
               size="large"
               sx={{
-                mt: 4,
+                mt: 2,
                 mb: 2,
                 py: 1.5,
                 fontSize: "1.1rem",
@@ -212,11 +231,6 @@ const UserLogin: React.FC = () => {
             >
               Login
             </Button>
-            {error && (
-              <Alert severity="error" sx={{ mt: 2 }}>
-                {error}
-              </Alert>
-            )}
           </Box>
         </Paper>
       </Container>

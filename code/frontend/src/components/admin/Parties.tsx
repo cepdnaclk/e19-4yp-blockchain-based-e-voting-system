@@ -1,31 +1,30 @@
-import React, { useState, useEffect } from "react";
+import { Add as AddIcon } from "@mui/icons-material";
 import {
+  Avatar,
   Box,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
   Button,
+  Chip,
+  CircularProgress,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  TextField,
+  DialogContent,
+  DialogTitle,
+  FormControl,
   Grid,
+  InputLabel,
   List,
   ListItem,
-  ListItemText,
   ListItemAvatar,
-  Avatar,
-  IconButton,
-  CircularProgress,
-  Chip,
+  ListItemText,
+  MenuItem,
+  Paper,
+  Select,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
 } from "@mui/material";
-import {
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  ArrowBack as ArrowBackIcon,
-} from "@mui/icons-material";
+import React, { useEffect, useState } from "react";
 import { useToast } from "../../context/ToastContext";
 import { useFetch } from "../../hooks/useFetch";
 
@@ -33,16 +32,35 @@ interface Party {
   id: number;
   name: string;
   symbol: string;
-  status: "active" | "inactive";
+  electionId?: number;
   candidate_count?: number;
+}
+
+interface ElectionType {
+  id: number;
+  name: string;
+}
+
+interface PartyFetchResposnse {
+  id: number;
+  name: string;
+  symbol: string;
+  electionId?: number;
 }
 
 interface Candidate {
   id: number;
   name: string;
-  party: string;
-  status: "active" | "inactive";
-  vote_number: string;
+  birthday: Date;
+  address: string;
+  mobileNumber: string;
+  email: string;
+  photo: string;
+  partyId?: string;
+  partyName?: string;
+  candidateNumber: string;
+  electionId?: string;
+  electionName?: string;
 }
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
@@ -51,33 +69,95 @@ const Parties: React.FC = () => {
   const { showToast } = useToast();
   const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [partyToDelete, setPartyToDelete] = useState<number | null>(null);
+  // const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  // const [partyToDelete, setPartyToDelete] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedParty, setSelectedParty] = useState<Party | null>(null);
+  // const [selectedParty, setSelectedParty] = useState<Party | null>(null);
   const [parties, setParties] = useState<Party[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [elections, setElections] = useState<ElectionType[]>([]);
   const [partyData, setPartyData] = useState({
     name: "",
     symbol: "",
+    electionId: "",
   });
   const { sendRequest } = useFetch({ setLoading: setIsLoading });
 
-  // Fetch parties on component mount
   useEffect(() => {
-    fetchParties();
+    fetchElections();
+    fetchCandidates();
   }, []);
 
-  const fetchParties = async () => {
+  useEffect(() => {
+    if (elections.length > 0) {
+      fetchParties();
+    }
+  }, [elections]);
+
+  const fetchElections = async () => {
     try {
-      const response = await sendRequest({
-        url: `${baseUrl}/api/admin/party/stats`,
+      const response: {
+        status: number;
+        data: { message: string; data: { id: number; name: string }[] };
+      } = await sendRequest({
+        url: `${baseUrl}/api/admin/election/list`,
         options: {
           method: "GET",
         },
       });
 
       if (response && response.status === 200) {
-        setParties(response.data.data);
+        // Handle elections data if needed
+        setElections(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching elections:", error);
+      showToast("Failed to fetch elections. Please try again.", "error");
+    }
+  };
+
+  const fetchCandidates = async () => {
+    try {
+      const response: {
+        status: number;
+        data: { message: string; data: Candidate[] };
+      } = await sendRequest({
+        url: `${baseUrl}/api/admin/candidate/list`,
+        options: {
+          method: "GET",
+        },
+      });
+
+      if (response && response.status === 200) {
+        setCandidates(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching candidates:", error);
+      showToast("Failed to fetch candidates. Please try again.", "error");
+    }
+  };
+
+  const fetchParties = async () => {
+    try {
+      const response: {
+        status: number;
+        data: { message: string; data: PartyFetchResposnse[] };
+      } = await sendRequest({
+        url: `${baseUrl}/api/admin/party/list`,
+        options: {
+          method: "GET",
+        },
+      });
+
+      if (response && response.status === 200) {
+        const fetchedParties = response.data.data.map((party) => ({
+          id: party.id,
+          name: party.name,
+          symbol: party.symbol,
+          electionId: party.electionId,
+        }));
+
+        setParties(fetchedParties);
       }
     } catch (error) {
       console.error("Error fetching parties:", error);
@@ -98,6 +178,7 @@ const Parties: React.FC = () => {
     setPartyData({
       name: "",
       symbol: "",
+      electionId: "",
     });
   };
 
@@ -114,21 +195,35 @@ const Parties: React.FC = () => {
     }
 
     try {
-      const response = await sendRequest({
+      const response: {
+        status: number;
+        data: { message: string; data: PartyFetchResposnse };
+      } = await sendRequest({
         url: `${baseUrl}/api/admin/party/create`,
         options: {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: { name: partyData.name, symbol: partyData.symbol },
+          body: {
+            name: partyData.name,
+            symbol: partyData.symbol,
+            electionId: partyData.electionId,
+          },
         },
       });
 
       if (response && response.status === 201) {
         showToast("Party created successfully!", "success");
         handleCloseDialog();
-        fetchParties(); // Refresh the list
+        const data: PartyFetchResposnse = response.data.data;
+        const newParty: Party = {
+          id: data.id,
+          name: data.name,
+          symbol: data.symbol,
+          electionId: data.electionId,
+        };
+        setParties((prev) => [...prev, newParty]);
       }
     } catch (error) {
       console.error("Error creating party:", error);
@@ -136,44 +231,16 @@ const Parties: React.FC = () => {
     }
   };
 
-  const handleDeleteClick = (partyId: number) => {
-    setPartyToDelete(partyId);
-    setDeleteDialogOpen(true);
-  };
+  // TODO : Add this if this is needed in the future
+  // const handlePartyClick = (party: Party) => {
+  //   setSelectedParty(party);
+  //   setTabValue(1);
+  // };
 
-  const handleDeleteConfirm = async () => {
-    if (!partyToDelete) return;
-
-    try {
-      const response = await sendRequest({
-        url: `${baseUrl}/api/admin/party/${partyToDelete}`,
-        options: {
-          method: "DELETE",
-        },
-      });
-
-      if (response && response.status === 200) {
-        showToast("Party deleted successfully!", "success");
-        fetchParties(); // Refresh the list
-      }
-    } catch (error) {
-      console.error("Error deleting party:", error);
-      showToast("Failed to delete party. Please try again.", "error");
-    } finally {
-      setDeleteDialogOpen(false);
-      setPartyToDelete(null);
-    }
-  };
-
-  const handlePartyClick = (party: Party) => {
-    setSelectedParty(party);
-    setTabValue(1);
-  };
-
-  const handleBackToList = () => {
-    setSelectedParty(null);
-    setTabValue(0);
-  };
+  // const handleBackToList = () => {
+  //   setSelectedParty(null);
+  //   setTabValue(0);
+  // };
 
   const PartyList: React.FC<{ parties: Party[] }> = ({ parties }) => (
     <List>
@@ -224,7 +291,7 @@ const Parties: React.FC = () => {
                 backgroundColor: "action.hover",
               },
             }}
-            onClick={() => handlePartyClick(party)}
+            // onClick={() => handlePartyClick(party)}
           >
             <ListItemAvatar>
               <Avatar
@@ -240,9 +307,9 @@ const Parties: React.FC = () => {
                 <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                   {party.name}
                   <Chip
-                    label={party.status}
+                    label={party.electionId ? "active" : "inactive"}
                     size="small"
-                    color={party.status === "active" ? "success" : "default"}
+                    color={party.electionId ? "success" : "default"}
                   />
                 </Box>
               }
@@ -251,12 +318,19 @@ const Parties: React.FC = () => {
                   sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}
                 >
                   <Typography variant="body2" color="text.secondary">
-                    {party.candidate_count || 0} candidates
+                    {elections.find((e) => e.id === party.electionId)?.name ||
+                      "N/A"}{" "}
+                    |{" "}
+                    {candidates.filter(
+                      (entry) => Number(entry.partyId) === Number(party.id)
+                    ).length || 0}{" "}
+                    Candidates
                   </Typography>
                 </Box>
               }
             />
-            <IconButton
+            {/* TODO : Add this if the delete option is permitted */}
+            {/* <IconButton
               edge="end"
               aria-label="delete"
               onClick={(e) => {
@@ -266,122 +340,105 @@ const Parties: React.FC = () => {
               sx={{ color: "error.main" }}
             >
               <DeleteIcon />
-            </IconButton>
+            </IconButton> */}
           </ListItem>
         ))
       )}
     </List>
   );
 
-  const PartyDetails: React.FC<{ party: Party }> = ({ party }) => {
-    // Mock candidates data - in a real app, you'd fetch this from the API
-    const candidates: Candidate[] = [
-      {
-        id: 1,
-        name: "John Doe",
-        party: party.name,
-        status: "active",
-        vote_number: "001",
-      },
-      {
-        id: 2,
-        name: "Jane Smith",
-        party: party.name,
-        status: "inactive",
-        vote_number: "002",
-      },
-    ];
+  // TODO : Add this if the details are needed
+  // const PartyDetails: React.FC<{ party: Party }> = ({ party }) => {
+  //   return (
+  //     <Box>
+  //       <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+  //         <IconButton onClick={handleBackToList} sx={{ mr: 2 }}>
+  //           <ArrowBackIcon />
+  //         </IconButton>
+  //         <Typography variant="h5" component="h2">
+  //           {party.name}
+  //         </Typography>
+  //       </Box>
 
-    return (
-      <Box>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-          <IconButton onClick={handleBackToList} sx={{ mr: 2 }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h5" component="h2">
-            {party.name}
-          </Typography>
-        </Box>
+  //       <Grid container spacing={3}>
+  //         <Grid item xs={12} md={6}>
+  //           <Paper sx={{ p: 3, mb: 3 }}>
+  //             <Typography variant="h6" gutterBottom>
+  //               Party Information
+  //             </Typography>
+  //             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+  //               <Avatar
+  //                 src={party.symbol}
+  //                 alt={party.name}
+  //                 sx={{ width: 80, height: 80, mr: 2 }}
+  //               >
+  //                 {party.name.charAt(0)}
+  //               </Avatar>
+  //               <Box>
+  //                 <Typography variant="h6">{party.name}</Typography>
+  //                 <Chip
+  //                   label={party.status}
+  //                   color={party.status === "active" ? "success" : "default"}
+  //                   sx={{ mt: 1 }}
+  //                 />
+  //               </Box>
+  //             </Box>
+  //             <Typography variant="body2" color="text.secondary">
+  //               Symbol URL: {party.symbol}
+  //             </Typography>
+  //           </Paper>
+  //         </Grid>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Party Information
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Avatar
-                  src={party.symbol}
-                  alt={party.name}
-                  sx={{ width: 80, height: 80, mr: 2 }}
-                >
-                  {party.name.charAt(0)}
-                </Avatar>
-                <Box>
-                  <Typography variant="h6">{party.name}</Typography>
-                  <Chip
-                    label={party.status}
-                    color={party.status === "active" ? "success" : "default"}
-                    sx={{ mt: 1 }}
-                  />
-                </Box>
-              </Box>
-              <Typography variant="body2" color="text.secondary">
-                Symbol URL: {party.symbol}
-              </Typography>
-            </Paper>
-          </Grid>
+  //         <Grid item xs={12} md={6}>
+  //           <Paper sx={{ p: 3 }}>
+  //             <Typography variant="h6" gutterBottom>
+  //               Statistics
+  //             </Typography>
+  //             <Box
+  //               sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
+  //             >
+  //               <Typography>Total Candidates:</Typography>
+  //               <Typography variant="h6">
+  //                 {party.candidate_count || 0}
+  //               </Typography>
+  //             </Box>
+  //             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+  //               <Typography>Active Candidates:</Typography>
+  //               <Typography variant="h6">
+  //                 {candidates.filter((c) => c.status === "active").length}
+  //               </Typography>
+  //             </Box>
+  //           </Paper>
+  //         </Grid>
 
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Statistics
-              </Typography>
-              <Box
-                sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
-              >
-                <Typography>Total Candidates:</Typography>
-                <Typography variant="h6">
-                  {party.candidate_count || 0}
-                </Typography>
-              </Box>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography>Active Candidates:</Typography>
-                <Typography variant="h6">
-                  {candidates.filter((c) => c.status === "active").length}
-                </Typography>
-              </Box>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Candidates
-              </Typography>
-              <List>
-                {candidates.map((candidate) => (
-                  <ListItem key={candidate.id}>
-                    <ListItemText
-                      primary={candidate.name}
-                      secondary={`Vote Number: ${candidate.vote_number}`}
-                    />
-                    <Chip
-                      label={candidate.status}
-                      size="small"
-                      color={
-                        candidate.status === "active" ? "success" : "default"
-                      }
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Box>
-    );
-  };
+  //         <Grid item xs={12}>
+  //           <Paper sx={{ p: 3 }}>
+  //             <Typography variant="h6" gutterBottom>
+  //               Candidates
+  //             </Typography>
+  //             <List>
+  //               {candidates.map((candidate) => (
+  //                 <ListItem key={candidate.id}>
+  //                   <ListItemText
+  //                     primary={candidate.name}
+  //                     secondary={`Candidate Number: ${candidate.vote_number}`}
+  //                   />
+  //                   <Chip
+  //                     label={candidate.status}
+  //                     size="small"
+  //                     color={
+  //                       candidate.status === "active" ? "success" : "default"
+  //                     }
+  //                   />
+  //                 </ListItem>
+  //               ))}
+  //             </List>
+  //           </Paper>
+  //         </Grid>
+  //       </Grid>
+  //     </Box>
+  //   );
+  // };
 
   return (
     <Box sx={{ p: 3 }}>
@@ -413,14 +470,14 @@ const Parties: React.FC = () => {
           sx={{ borderBottom: 1, borderColor: "divider" }}
         >
           <Tab label="All Parties" />
-          {selectedParty && <Tab label={selectedParty.name} />}
         </Tabs>
 
         <Box sx={{ p: 3 }}>
           {tabValue === 0 && <PartyList parties={parties} />}
-          {tabValue === 1 && selectedParty && (
+          {/* TODO: Add this if this is needed */}
+          {/* {tabValue === 1 && selectedParty && (
             <PartyDetails party={selectedParty} />
-          )}
+          )} */}
         </Box>
       </Paper>
 
@@ -457,6 +514,27 @@ const Parties: React.FC = () => {
                 helperText="Enter the URL of the party symbol image"
               />
             </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Election</InputLabel>
+                <Select
+                  value={partyData.electionId || ""}
+                  label="Election"
+                  onChange={(e) =>
+                    setPartyData({
+                      ...partyData,
+                      electionId: e.target.value,
+                    })
+                  }
+                >
+                  {elections.map((election) => (
+                    <MenuItem key={election.id} value={election.id}>
+                      {election.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
@@ -467,8 +545,9 @@ const Parties: React.FC = () => {
         </DialogActions>
       </Dialog>
 
+      {/* TODO: Add this delete confirmation dialog if the delete opetaion is allowed */}
       {/* Delete Confirmation Dialog */}
-      <Dialog
+      {/* <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
       >
@@ -489,7 +568,7 @@ const Parties: React.FC = () => {
             Delete
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
     </Box>
   );
 };

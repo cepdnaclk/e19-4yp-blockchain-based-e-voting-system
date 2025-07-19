@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { sendError } from "../../utils/responseHandler";
+import { sendError, sendSuccess } from "../../utils/responseHandler";
 import messages from "../../common/constants/messages";
 import { secretKeyGenerationService } from "../../services/cryptography/secretKeyGenerationService";
 
@@ -21,7 +21,16 @@ export const voterRegistrationController = async (
   }
 
   try {
-    const data = secretKeyGenerationService(2, 2);
+    const { votersKeyString, pollingStationKeyString } =
+      await secretKeyGenerationService(2, 2);
+    const responseData = {
+      votersKey: votersKeyString,
+      pollingStationKey: pollingStationKeyString,
+    };
+    sendSuccess(res, 201, {
+      data: responseData,
+      message: messages.voter.registrationSuccess,
+    });
   } catch (error) {
     console.error("Error during voter registration:", error);
     sendError(res, 500, {

@@ -1,37 +1,32 @@
-import express, { Request, Response } from "express";
-import { Router } from "express";
+import { Request, Response, Router } from "express";
+import { getAllElectionsController } from "../controllers/admin/adminElectionController";
+import { getAllPartiesController } from "../controllers/admin/adminPartyController";
 import {
-  getCandidates,
-  castVote,
-  getResults,
-} from "../controllers/voteController";
+  getCandidatesForVotingController,
+  voteCountController,
+} from "../controllers/vote/voteCommonController";
+import { castVote } from "../controllers/vote/voteCastController";
 import { authMiddleware } from "../middleware/authMiddleware";
 
 const router = Router();
 
 // Status route
 router.get("/status", authMiddleware, (req: Request, res: Response) => {
-  try {
-    res.status(200).json({ status: "Voting system is active" });
-  } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
-  }
+  res.status(200).json({ status: "Voting system is active" });
 });
-
-// Root route for testing
-router.get("/", (req: Request, res: Response) => {
-  res.status(200).json({ message: "Vote routes are working" });
-});
-
-// Get all candidates
-router.get("/candidates", getCandidates);
 
 // Cast a vote
-router.post("/cast", (req, res) => {
-  castVote(req, res);
-});
+router.post("/cast", castVote);
+
+router.get("/count", voteCountController);
+
+router.get("/candidates", getCandidatesForVotingController);
+
+router.get("/parties", getAllPartiesController);
+
+router.get("/elections", getAllElectionsController);
 
 // Get voting results
-router.get("/results", getResults);
+// router.get("/results", getResults);
 
 export default router;

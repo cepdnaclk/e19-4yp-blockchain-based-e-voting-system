@@ -1,213 +1,216 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Container,
-  Typography,
-  Paper,
-  Button,
-  Radio,
-  Alert,
-  useTheme,
-  Card,
-  CardContent,
-  Fade,
-  Zoom,
-  Avatar,
-  Stack,
-  Grid,
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
-  AppBar,
-  Toolbar,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  CardMedia,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  CircularProgress,
-} from "@mui/material";
-import Navigation from "./Navigation";
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import HomeIcon from "@mui/icons-material/Home";
-import BarChartIcon from "@mui/icons-material/BarChart";
-import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import RadioGroup from "@mui/material/RadioGroup";
+import {
+  Alert,
+  AppBar,
+  Avatar,
+  Box,
+  Button,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Fade,
+  Paper,
+  Radio,
+  Toolbar,
+  Typography,
+  useTheme,
+  Zoom,
+} from "@mui/material";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import RadioGroup from "@mui/material/RadioGroup";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import LoadingOverlay from "./LoadingOverlay";
+import SuccessOverlay from "./SuccessOverlay";
 
 interface Candidate {
   id: number;
   name: string;
-  party: string;
-  position: string;
+  partyId: number;
+  electionId: number;
   image_url: string;
+  candidateNumber: number;
   votes?: number;
   percentage?: number;
+  partyName?: string;
+  electionName?: string;
 }
 
-interface VoteResponse {
-  message: string;
-  voter: {
-    id: number;
-    voter_id: string;
-    name: string;
-    has_voted: boolean;
-  };
+interface Party {
+  partyId: number;
+  partyName: string;
 }
 
-interface UserProfile {
+interface Election {
+  id: number;
   name: string;
-  email: string;
-  voterId: string;
-  registrationDate: string;
-  votingHistory: {
-    election: string;
-    date: string;
-    status: string;
-  }[];
 }
 
-interface APIResponse {
+interface ElectionsFetchResponse {
+  id: number;
   name: string;
+  startDateTime: Date;
+  endDateTime: Date;
+}
+
+interface PartiesFetchResponse {
+  id: number;
+  name: string;
+  symbol: string;
+  electionId: number;
+}
+
+interface CandidateRes {
+  id: number;
+  address: string;
+  birthday: string;
   email: string;
-  voterId: string;
-  registrationDate: string;
-  votingHistory: {
-    election: string;
-    date: string;
-    status: string;
-  }[];
+  mobileNumber: string;
+  name: string;
+  partyId: number;
+  photo: string;
+  status: "active" | "inactive";
+  candidateNumber: number;
+  electionId: number;
+  createdAt: string;
 }
 
 const UserDashboard: React.FC = () => {
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
+    null
+  );
   const [openDialog, setOpenDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [currentView, setCurrentView] = useState<"vote" | "profile" | "results">("vote");
-  const [electionEnded, setElectionEnded] = useState(false);
-  const [votedCandidate, setVotedCandidate] = useState<Candidate | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingCandidate, setIsLoadingCandidate] = useState(false);
+  const [isLoadingVoteCasting, setIsLoadingVoteCasting] = useState(false);
+  const [activeElections, setActiveElections] = useState<Election[]>([]);
+  const [activeParties, setActiveParties] = useState<Party[]>([]);
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const theme = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchCandidates();
-    fetchUserProfile();
+    fetchElections();
   }, []);
 
-  const fetchUserProfile = async () => {
-    try {
-      const voterId = localStorage.getItem("voterId");
-      if (!voterId) {
-        navigate("/");
-        return;
-      }
-
-      const { data } = await axios.get<APIResponse>(`http://localhost:5000/api/voter/profile/${voterId}`);
-      setUserProfile({
-        name: data.name,
-        email: data.email,
-        voterId: data.voterId,
-        registrationDate: data.registrationDate,
-        votingHistory: data.votingHistory
-      });
-      setIsLoading(false);
-    } catch (error: any) {
-      console.error("Error fetching user profile:", error);
-      setError(error.response?.data?.error || "Failed to fetch user profile");
-      setIsLoading(false);
+  useEffect(() => {
+    if (activeElections.length > 0) {
+      fetchParties();
+    } else {
+      setIsLoadingCandidate(false);
     }
-  };
+  }, [activeElections]);
+
+  useEffect(() => {
+    if (activeParties.length > 0) {
+      fetchCandidates();
+    } else {
+      setIsLoadingCandidate(false);
+    }
+  }, [activeParties]);
 
   const fetchCandidates = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:5000/api/votes/candidates"
+      setIsLoadingCandidate(true);
+      setError(null);
+      const response: { data: { message: string; data: CandidateRes[] } } =
+        await axios.get("http://localhost:5000/api/votes/candidates");
+      const data: CandidateRes[] = response.data.data;
+      const activeCandidates = data.filter((candidate) =>
+        activeElections.some(
+          (election) => Number(election.id) === Number(candidate.electionId)
+        )
       );
-      setCandidates((response.data as { candidates: Candidate[] }).candidates);
+      const candidates: Candidate[] = activeCandidates.map(
+        (candidate: CandidateRes) => ({
+          id: candidate.id,
+          name: candidate.name,
+          partyId: candidate.partyId,
+          electionId: candidate.electionId,
+          partyName:
+            activeParties.find(
+              (party) => Number(party.partyId) === Number(candidate.partyId)
+            )?.partyName || "N/A",
+          electionName:
+            activeElections.find(
+              (election) => Number(election.id) === Number(candidate.electionId)
+            )?.name || "N?A",
+          image_url: candidate.photo,
+          candidateNumber: candidate.candidateNumber,
+        })
+      );
+      setCandidates(candidates);
+      if (candidates.length > 0) {
+        setSelectedCandidate(candidates[0]);
+      }
     } catch (error) {
       console.error("Error fetching candidates:", error);
       setError("Failed to fetch candidates. Please try again later.");
+    } finally {
+      setIsLoadingCandidate(false);
     }
   };
 
-  const handleVoteClick = (candidate: Candidate) => {
-    setSelectedCandidate(candidate);
-    setOpenDialog(true);
+  const fetchElections = async () => {
+    try {
+      setIsLoadingCandidate(true);
+      setError(null);
+      const response: {
+        status: number;
+        data: { message: string; data: ElectionsFetchResponse[] };
+      } = await axios.get("http://localhost:5000/api/votes/elections");
+
+      if (response && response.status === 200) {
+        const activeElections: Election[] = response.data.data
+          .filter(
+            (election) =>
+              new Date(election.startDateTime) <= new Date() &&
+              new Date(election.endDateTime) >= new Date()
+          )
+          .map((election) => ({ id: election.id, name: election.name }));
+        setActiveElections(activeElections);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setError("Failed to fetch data. Please try again.");
+    }
   };
 
-  const handleConfirmVote = async () => {
-    if (!selectedCandidate) return;
-
+  const fetchParties = async () => {
     try {
-      const voterId = localStorage.getItem("voterId");
-      if (!voterId) {
-        setError("Voter ID not found. Please login again.");
-        return;
-      }
+      setIsLoadingCandidate(true);
+      setError(null);
+      const response: {
+        status: number;
+        data: { message: string; data: PartiesFetchResponse[] };
+      } = await axios.get("http://localhost:5000/api/votes/parties");
 
-      const response = await axios.post(
-        "http://localhost:5000/api/votes/cast",
-        {
-          candidate_id: selectedCandidate.id,
-          voter_id: voterId,
-        }
-      );
-
-      if (response.data && response.data.message === "Vote cast successfully") {
-        // Update the user profile to show the new voting history
-        fetchUserProfile();
-        setSuccess("Your vote has been cast successfully!");
-        setOpenDialog(false);
-        setSelectedCandidate(null);
-        // Automatically switch to profile view to show voting history
-        setCurrentView("results");
-      } else {
-        setError(response.data?.error || "Failed to cast vote.");
+      if (response && response.status === 200) {
+        const activeParties: Party[] = response.data.data
+          .filter((party) =>
+            activeElections.some(
+              (election) => Number(election.id) === Number(party.electionId)
+            )
+          )
+          .map((party) => ({ partyId: party.id, partyName: party.name }));
+        setActiveParties(activeParties);
       }
-    } catch (error: any) {
-      setError(
-        error.response?.data?.error || "Failed to cast vote. Please try again."
-      );
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setError("Failed to fetch data. Please try again.");
     }
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setSelectedCandidate(null);
-  };
-
-  const handleReturnHome = () => {
-    navigate("/");
-  };
-
-  const handleViewResults = () => {
-    setCurrentView("results");
-  };
-
-  const handleProfile = () => {
-    setCurrentView("profile");
   };
 
   const handleLogout = () => {
-    // TODO: Implement logout logic
-    console.log("Logout clicked");
     navigate("/");
   };
 
@@ -216,352 +219,39 @@ const UserDashboard: React.FC = () => {
       setError("Please select a candidate.");
       return;
     }
-    const voterId = localStorage.getItem("voterId");
-    if (!voterId) {
+    const votersSecretKey = localStorage.getItem("votersSecretKey");
+    if (!votersSecretKey) {
       setError("You must be logged in to vote.");
       return;
     }
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/votes/cast",
-        {
-          candidate_id: selectedCandidate.id,
-          voter_id: voterId,
-        }
-      );
-      const data = response.data as { message?: string; error?: string };
-      if (data && data.message === "Vote cast successfully") {
-        setVotedCandidate(selectedCandidate);
-        setSuccess("Your vote has been cast!");
-        setOpenDialog(false);
-        setSelectedCandidate(null);
-      } else {
-        setError(data?.error || "Failed to cast vote.");
+      setError(null);
+      setOpenDialog(false);
+      setIsLoadingVoteCasting(true);
+
+      const response: {
+        status: number;
+        data: { message: string; data: { secretKeyHash: string } };
+      } = await axios.post("http://localhost:5000/api/votes/cast", {
+        candidateId: selectedCandidate.id,
+        secretKeyHash: votersSecretKey,
+      });
+
+      if (response.status === 201 && response.data.data) {
+        setShowSuccessOverlay(true);
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      setError(
-        err.response?.data?.error ||
-          "Failed to cast vote. Please try again later."
-      );
+      console.error("Error casting vote:", err);
+      if (err.response) {
+        setError(err.response.data.message || "Failed to cast vote.");
+      } else {
+        setError("Failed to cast vote. Please try again later.");
+      }
+    } finally {
+      setIsLoadingVoteCasting(false);
     }
   };
-
-  const sidePanelItems = [
-    {
-      text: "Cast Vote",
-      icon: <HowToVoteIcon />,
-      onClick: () => setCurrentView("vote"),
-    },
-    { text: "View Profile", icon: <PersonIcon />, onClick: handleProfile },
-    {
-      text: "View Results",
-      icon: <BarChartIcon />,
-      onClick: handleViewResults,
-    },
-    { text: "Logout", icon: <LogoutIcon />, onClick: handleLogout },
-  ];
-
-  const renderProfileView = () => (
-    <Fade in timeout={800}>
-      <Paper
-        elevation={6}
-        sx={{
-          p: { xs: 2, md: 3 },
-          background: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(10px)",
-          borderRadius: 3,
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        ) : !userProfile ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            Failed to load profile data
-          </Alert>
-        ) : (
-          <>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
-              <PersonIcon sx={{ fontSize: 32, color: theme.palette.primary.main }} />
-              <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
-                Your Profile
-              </Typography>
-            </Box>
-
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Card sx={{ mb: 3 }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      Personal Information
-                    </Typography>
-                    <Stack spacing={2}>
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Name
-                        </Typography>
-                        <Typography variant="body1">{userProfile.name}</Typography>
-                      </Box>
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Email
-                        </Typography>
-                        <Typography variant="body1">{userProfile.email}</Typography>
-                      </Box>
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Voter ID
-                        </Typography>
-                        <Typography variant="body1">{userProfile.voterId}</Typography>
-                      </Box>
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Registration Date
-                        </Typography>
-                        <Typography variant="body1">
-                          {new Date(userProfile.registrationDate).toLocaleDateString()}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      Voting History
-                    </Typography>
-                    <TableContainer>
-                      <Table>
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Election</TableCell>
-                            <TableCell>Date</TableCell>
-                            <TableCell>Status</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {userProfile.votingHistory.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={3} align="center">
-                                No voting history available
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            userProfile.votingHistory.map((history, index) => (
-                              <TableRow key={index}>
-                                <TableCell>{history.election}</TableCell>
-                                <TableCell>{new Date(history.date).toLocaleDateString()}</TableCell>
-                                <TableCell>
-                                  <Typography
-                                    sx={{
-                                      color: history.status === "Voted" ? "success.main" : "error.main",
-                                      fontWeight: 600,
-                                    }}
-                                  >
-                                    {history.status}
-                                  </Typography>
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </>
-        )}
-      </Paper>
-    </Fade>
-  );
-
-  const renderResultsView = () => (
-    <Fade in timeout={800}>
-      <Paper
-        elevation={6}
-        sx={{
-          p: { xs: 2, md: 3 },
-          background: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(10px)",
-          borderRadius: 3,
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
-          <BarChartIcon
-            sx={{ fontSize: 32, color: theme.palette.primary.main }}
-          />
-          <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
-            {electionEnded ? "Election Results" : "Your Vote Status"}
-          </Typography>
-        </Box>
-
-        {electionEnded ? (
-          // Show final results when election has ended
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Candidate</TableCell>
-                  <TableCell>Party</TableCell>
-                  <TableCell align="right">Votes</TableCell>
-                  <TableCell align="right">Percentage</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {candidates.map((result) => (
-                  <TableRow key={result.id}>
-                    <TableCell>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
-                      >
-                        <Avatar
-                          src={result.image_url}
-                          sx={{ width: 40, height: 40 }}
-                        />
-                        <Typography>{result.name}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>{result.party}</TableCell>
-                    <TableCell align="right">{result.votes}</TableCell>
-                    <TableCell align="right">{result.percentage}%</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : (
-          // Show vote status and waiting message when election is ongoing
-          <Box sx={{ textAlign: "center", py: 4 }}>
-            {success ? (
-              <>
-                <CheckCircleIcon
-                  sx={{
-                    fontSize: 64,
-                    color: "success.main",
-                    mb: 2,
-                  }}
-                />
-                <Typography variant="h6" color="success.main" gutterBottom>
-                  {success}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  sx={{ mb: 3 }}
-                >
-                  Thank you for participating in the election.
-                </Typography>
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={2}
-                  justifyContent="center"
-                >
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    onClick={handleReturnHome}
-                    startIcon={<HomeIcon />}
-                    sx={{
-                      borderRadius: 2,
-                      textTransform: "none",
-                      px: 3,
-                      py: 1,
-                      borderWidth: 2,
-                      "&:hover": {
-                        borderWidth: 2,
-                      },
-                    }}
-                  >
-                    Return Home
-                  </Button>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    onClick={handleViewResults}
-                    startIcon={<BarChartIcon />}
-                    sx={{
-                      borderRadius: 2,
-                      textTransform: "none",
-                      px: 3,
-                      py: 1,
-                      boxShadow: "0 4px 14px rgba(0, 0, 0, 0.1)",
-                      "&:hover": {
-                        transform: "translateY(-2px)",
-                        boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)",
-                      },
-                    }}
-                  >
-                    View Results
-                  </Button>
-                </Stack>
-              </>
-            ) : (
-              <>
-                <Typography variant="h6" gutterBottom>
-                  Election in Progress
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  sx={{ mb: 3 }}
-                >
-                  The election is currently ongoing. Cast your vote to
-                  participate in the democratic process.
-                </Typography>
-                <Button
-                  variant="contained"
-                  size="large"
-                  onClick={() => setCurrentView("vote")}
-                  startIcon={<HowToVoteIcon />}
-                  sx={{
-                    borderRadius: 2,
-                    textTransform: "none",
-                    px: 3,
-                    py: 1,
-                    boxShadow: "0 4px 14px rgba(0, 0, 0, 0.1)",
-                    "&:hover": {
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)",
-                    },
-                  }}
-                >
-                  Cast Your Vote
-                </Button>
-              </>
-            )}
-            <Box
-              sx={{
-                mt: 4,
-                p: 3,
-                background: "rgba(0, 0, 0, 0.02)",
-                borderRadius: 2,
-              }}
-            >
-              <Typography variant="subtitle1" gutterBottom>
-                Final Results
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                The final results will be displayed here once the election
-                period ends.
-              </Typography>
-            </Box>
-          </Box>
-        )}
-      </Paper>
-    </Fade>
-  );
 
   return (
     <Box
@@ -588,6 +278,14 @@ const UserDashboard: React.FC = () => {
         },
       }}
     >
+      <LoadingOverlay
+        isLoading={isLoadingCandidate}
+        message="Loading candidates..."
+      />
+      <LoadingOverlay
+        isLoading={isLoadingVoteCasting}
+        message="Casting Vote..."
+      />
       <AppBar
         position="fixed"
         sx={{
@@ -605,282 +303,260 @@ const UserDashboard: React.FC = () => {
               color: "white",
             }}
           >
-            Blockchain-Based E-Voting System
+            Chain Vote - E-Voting System
           </Typography>
+          <Button
+            color="inherit"
+            startIcon={<LogoutIcon />}
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
         </Toolbar>
       </AppBar>
 
       <Box sx={{ display: "flex", flex: 1, mt: 8 }}>
-        <Drawer
-          variant="permanent"
-          sx={{
-            width: 240,
-            flexShrink: 0,
-            "& .MuiDrawer-paper": {
-              width: 240,
-              boxSizing: "border-box",
-              background: "rgba(255, 255, 255, 0.95)",
-              backdropFilter: "blur(10px)",
-              borderRight: "1px solid rgba(255, 255, 255, 0.12)",
-              mt: 8,
-            },
-          }}
-        >
-          <Box sx={{ overflow: "auto" }}>
-            <List>
-              {sidePanelItems.map((item, index) => (
-                <React.Fragment key={item.text}>
-                  <ListItem
-                    button
-                    onClick={item.onClick}
-                    selected={
-                      currentView === item.text.toLowerCase().replace(" ", "")
-                    }
-                  >
-                    <ListItemIcon sx={{ color: theme.palette.primary.main }}>
-                      {item.icon}
-                    </ListItemIcon>
-                    <ListItemText primary={item.text} />
-                  </ListItem>
-                  {index < sidePanelItems.length - 1 && <Divider />}
-                </React.Fragment>
-              ))}
-            </List>
-          </Box>
-        </Drawer>
-
         <Container
           maxWidth={false}
           sx={{
-            mt: 4,
-            mb: 4,
             position: "relative",
             zIndex: 1,
-            ml: 4,
-            mr: 4,
-            maxWidth: "1200px !important",
+            width: "70%",
+            margin: "0 auto",
+            mt: 3,
+            mb: 4,
           }}
         >
-          {currentView === "vote" && (
-            <Fade in timeout={800}>
-              <Paper
-                elevation={6}
+          <Fade in timeout={800}>
+            <Paper
+              elevation={6}
+              sx={{
+                p: { xs: 2, md: 3 },
+                display: "flex",
+                flexDirection: "column",
+                background: "rgba(255, 255, 255, 0.95)",
+                backdropFilter: "blur(10px)",
+                borderRadius: 3,
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <Box
                 sx={{
-                  p: { xs: 2, md: 3 },
                   display: "flex",
-                  flexDirection: "column",
-                  background: "rgba(255, 255, 255, 0.95)",
-                  backdropFilter: "blur(10px)",
-                  borderRadius: 3,
-                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mb: 2,
+                  gap: 2,
+                }}
+              >
+                <HowToVoteIcon
+                  sx={{ fontSize: 32, color: theme.palette.primary.main }}
+                />
+                <Typography
+                  variant="h5"
+                  component="h1"
+                  align="center"
+                  sx={{
+                    fontWeight: 700,
+                    background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                    backgroundClip: "text",
+                    textFillColor: "transparent",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                  }}
+                >
+                  Cast Your Vote
+                </Typography>
+              </Box>
+
+              {error && (
+                <Zoom in>
+                  <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+                    {error}
+                  </Alert>
+                </Zoom>
+              )}
+
+              {showSuccessOverlay && (
+                <SuccessOverlay
+                  open={showSuccessOverlay}
+                  onLogout={handleLogout}
+                  message="Your vote has been cast successfully."
+                />
+              )}
+
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 3,
+                  height: "calc(100vh - 200px)",
                 }}
               >
                 <Box
                   sx={{
+                    flex: 1,
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    mb: 2,
-                    gap: 2,
+                    flexDirection: "column",
+                    overflow: "hidden",
                   }}
                 >
-                  <HowToVoteIcon
-                    sx={{ fontSize: 32, color: theme.palette.primary.main }}
-                  />
                   <Typography
-                    variant="h5"
-                    component="h1"
-                    align="center"
+                    variant="subtitle1"
                     sx={{
-                      fontWeight: 700,
-                      background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                      backgroundClip: "text",
-                      textFillColor: "transparent",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
+                      fontWeight: 600,
+                      color: theme.palette.primary.main,
+                      mb: 2,
                     }}
                   >
-                    Cast Your Vote
+                    Select a Candidate
                   </Typography>
+                  <Box
+                    sx={{
+                      maxHeight: 400,
+                      overflowY: "auto",
+                      background: "#fff",
+                      borderRadius: 2,
+                      boxShadow: 2,
+                      p: 2,
+                      mb: 2,
+                    }}
+                  >
+                    <RadioGroup
+                      value={selectedCandidate ? selectedCandidate.id : ""}
+                      onChange={(_, value) => {
+                        const candidate = candidates.find(
+                          (c) => c.id === Number(value)
+                        );
+                        setSelectedCandidate(candidate || null);
+                      }}
+                    >
+                      {candidates.map((candidate) => (
+                        <Box
+                          key={candidate.id}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            mb: 2,
+                            p: 1,
+                            borderRadius: 2,
+                            transition: "background 0.2s",
+                            background:
+                              selectedCandidate?.id === candidate.id
+                                ? "rgba(25, 118, 210, 0.08)"
+                                : "transparent",
+                            "&:hover": {
+                              background: "rgba(25, 118, 210, 0.12)",
+                            },
+                          }}
+                        >
+                          <FormControlLabel
+                            value={candidate.id}
+                            control={<Radio color="primary" />}
+                            label={
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 2,
+                                }}
+                              >
+                                <Avatar
+                                  src={candidate.image_url}
+                                  alt={candidate.name}
+                                  sx={{ width: 48, height: 48 }}
+                                />
+                                <Box>
+                                  <Typography fontWeight={600}>
+                                    {candidate.name}
+                                  </Typography>
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
+                                    {`Candidate Number - ${candidate.candidateNumber}  |  Party - ${candidate.partyName} | Election - ${candidate.electionName}`}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            }
+                            sx={{ flex: 1, m: 0 }}
+                          />
+                        </Box>
+                      ))}
+                    </RadioGroup>
+                  </Box>
                 </Box>
-
-                {error && (
-                  <Zoom in>
-                    <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-                      {error}
-                    </Alert>
-                  </Zoom>
-                )}
-
-                {success && (
-                  <Zoom in>
-                    <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>
-                      {success}
-                    </Alert>
-                  </Zoom>
-                )}
 
                 <Box
                   sx={{
+                    width: 200,
                     display: "flex",
-                    gap: 3,
-                    height: "calc(100vh - 200px)",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 2,
+                    p: 2,
+                    borderRadius: 2,
+                    background: "rgba(255, 255, 255, 0.5)",
+                    backdropFilter: "blur(10px)",
+                    height: "fit-content",
+                    alignSelf: "center",
+                    position: "sticky",
+                    top: "60%",
+                    transform: "translateY(-50%)",
+                    mt: 4,
                   }}
                 >
-                  <Box
+                  <Typography
+                    variant="subtitle1"
                     sx={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      overflow: "hidden",
+                      fontWeight: 600,
+                      color: theme.palette.primary.main,
                     }}
                   >
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        fontWeight: 600,
-                        color: theme.palette.primary.main,
-                        mb: 2,
-                      }}
-                    >
-                      Select a Candidate
-                    </Typography>
+                    Your Vote
+                  </Typography>
+                  {selectedCandidate && (
                     <Box
                       sx={{
-                        maxHeight: 400,
-                        overflowY: "auto",
-                        background: "#fff",
-                        borderRadius: 2,
-                        boxShadow: 2,
-                        p: 2,
-                        mb: 2,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
                     >
-                      <RadioGroup
-                        value={selectedCandidate ? selectedCandidate.id : ""}
-                        onChange={(_, value) => {
-                          const candidate = candidates.find(
-                            (c) => c.id === Number(value)
-                          );
-                          setSelectedCandidate(candidate || null);
-                        }}
-                      >
-                        {candidates.map((candidate) => (
-                          <Box
-                            key={candidate.id}
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              mb: 2,
-                              p: 1,
-                              borderRadius: 2,
-                              transition: "background 0.2s",
-                              background:
-                                selectedCandidate?.id === candidate.id
-                                  ? "rgba(25, 118, 210, 0.08)"
-                                  : "transparent",
-                              "&:hover": {
-                                background: "rgba(25, 118, 210, 0.12)",
-                              },
-                            }}
-                          >
-                            <FormControlLabel
-                              value={candidate.id}
-                              control={<Radio color="primary" />}
-                              label={
-                                <Box
-                                  sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 2,
-                                  }}
-                                >
-                                  <Avatar
-                                    src={candidate.image_url}
-                                    alt={candidate.name}
-                                    sx={{ width: 48, height: 48 }}
-                                  />
-                                  <Box>
-                                    <Typography fontWeight={600}>
-                                      {candidate.name}
-                                    </Typography>
-                                    <Typography
-                                      variant="body2"
-                                      color="text.secondary"
-                                    >
-                                      {candidate.party} — {candidate.position}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                              }
-                              sx={{ flex: 1, m: 0 }}
-                            />
-                          </Box>
-                        ))}
-                      </RadioGroup>
+                      <Avatar
+                        src={selectedCandidate.image_url}
+                        sx={{ width: 80, height: 80, mb: 1 }}
+                      />
+                      <Typography variant="subtitle1">
+                        {selectedCandidate.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {`Candidate Number - ${selectedCandidate.candidateNumber}`}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {`Party - ${selectedCandidate.partyName}`}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {`Election - ${selectedCandidate.electionName}`}
+                      </Typography>
                     </Box>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      width: 200,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: 2,
-                      p: 2,
-                      borderRadius: 2,
-                      background: "rgba(255, 255, 255, 0.5)",
-                      backdropFilter: "blur(10px)",
-                      height: "fit-content",
-                      alignSelf: "center",
-                      position: "sticky",
-                      top: "60%",
-                      transform: "translateY(-50%)",
-                      mt: 4,
-                    }}
+                  )}
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    disabled={!selectedCandidate}
+                    onClick={() => setOpenDialog(true)}
+                    sx={{ mt: 2, borderRadius: 2, fontWeight: 600 }}
                   >
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        fontWeight: 600,
-                        color: theme.palette.primary.main,
-                      }}
-                    >
-                      Your Vote
-                    </Typography>
-                    {selectedCandidate && (
-                      <Box sx={{ textAlign: "center" }}>
-                        <Avatar
-                          src={selectedCandidate.image_url}
-                          sx={{ width: 80, height: 80, mb: 1 }}
-                        />
-                        <Typography variant="subtitle1">
-                          {selectedCandidate.name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {selectedCandidate.party}
-                        </Typography>
-                      </Box>
-                    )}
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      fullWidth
-                      disabled={!selectedCandidate}
-                      onClick={() => setOpenDialog(true)}
-                      sx={{ mt: 2, borderRadius: 2, fontWeight: 600 }}
-                    >
-                      Confirm Vote
-                    </Button>
-                  </Box>
+                    Confirm Vote
+                  </Button>
                 </Box>
-              </Paper>
-            </Fade>
-          )}
-          {currentView === "profile" && renderProfileView()}
-          {currentView === "results" && renderResultsView()}
+              </Box>
+            </Paper>
+          </Fade>
+          )
         </Container>
       </Box>
 
@@ -889,18 +565,20 @@ const UserDashboard: React.FC = () => {
         <DialogContent>
           {selectedCandidate && (
             <Typography>
-              Are you sure you want to vote for {selectedCandidate.name} (
-              {selectedCandidate.party})? This action cannot be undone.
+              Are you sure you want to vote for{" "}
+              <strong>{selectedCandidate.name}</strong> under{" "}
+              <strong>{selectedCandidate.partyName}</strong> with candidate
+              <strong>
+                {" "}
+                Number{selectedCandidate.candidateNumber}
+              </strong> for <strong>{selectedCandidate.electionName}</strong>?
+              This action cannot be undone.
             </Typography>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            onClick={handleConfirmVote}
-            color="primary"
-            variant="contained"
-          >
+          <Button onClick={handleCastVote} color="primary" variant="contained">
             Confirm Vote
           </Button>
         </DialogActions>

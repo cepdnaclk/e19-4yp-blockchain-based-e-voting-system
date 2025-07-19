@@ -8,6 +8,7 @@ import NotFound from "./components/NotFound";
 import UserDashboard from "./components/UserDashboard";
 import UserLogin from "./components/UserLogin";
 import Unauthorized from "./components/Unauthorized";
+import ElectionResults from "./components/ElectionResults";
 
 const router = createBrowserRouter([
   {
@@ -21,6 +22,7 @@ const router = createBrowserRouter([
       { path: "admin/otp", element: <AdminOTP /> },
       { path: "admin/dashboard", element: <AdminDashboard /> },
       { path: "unautharized", element: <Unauthorized /> },
+      { path: "results", element: <ElectionResults /> },
       { path: "*", element: <NotFound /> },
     ],
   },

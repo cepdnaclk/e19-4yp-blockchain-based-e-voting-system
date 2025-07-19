@@ -1,44 +1,45 @@
-import React, { useState } from "react";
 import {
-  Box,
-  Drawer,
+  Person as CandidateIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  Dashboard as DashboardIcon,
+  HowToVote as ElectionIcon,
+  Logout as LogoutIcon,
+  Menu as MenuIcon,
+  Notifications as NotificationsIcon,
+  Groups as PartyIcon,
+  Settings as SettingsIcon,
+} from "@mui/icons-material";
+import {
   AppBar,
-  Toolbar,
-  List,
-  Typography,
+  Avatar,
+  Badge,
+  Box,
   Divider,
+  Drawer,
   IconButton,
+  List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  useTheme,
-  Avatar,
+  Toolbar,
   Tooltip,
-  Badge,
+  Typography,
+  useTheme,
 } from "@mui/material";
-import {
-  Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  HowToVote as ElectionIcon,
-  Person as CandidateIcon,
-  Notifications as NotificationsIcon,
-  Settings as SettingsIcon,
-  Logout as LogoutIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  Groups as PartyIcon,
-} from "@mui/icons-material";
-import Overview from "./admin/Overview";
-import Elections from "./admin/Elections";
-import Candidates from "./admin/Candidates";
-import Parties from "./admin/Parties";
-import { useAuth } from "../context/AuthContect";
-import { useFetch } from "../hooks/useFetch";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContect";
+import { ToastProvider, useToast } from "../context/ToastContext";
+import { useFetch } from "../hooks/useFetch";
+import Candidates from "./admin/Candidates";
+import Elections from "./admin/Elections";
+import Overview from "./admin/Overview";
+import Parties from "./admin/Parties";
 import LoadingOverlay from "./LoadingOverlay";
 import Toast from "./Toast";
-import { ToastProvider, useToast } from "../context/ToastContext";
+import Settings from "./admin/Settings";
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 80;
@@ -48,10 +49,9 @@ const AdminDashboardContent: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("overview");
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [notificationCount, setNotificationCount] = useState(3);
+  const [notificationCount] = useState(3);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const { accessToken, setAccessToken } = useAuth();
+  const { setAccessToken } = useAuth();
   const { sendRequest } = useFetch({ setLoading: setIsLoading });
   const { showToast, currentToast, dismissToast } = useToast();
   const theme = useTheme();
@@ -67,7 +67,7 @@ const AdminDashboardContent: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      setIsLoggingOut(true);
+      setIsLoading(true);
       const response: { status: number; data: { message: string } } =
         await sendRequest({
           url: `${baseUrl}/api/admin/logout`,
@@ -89,7 +89,7 @@ const AdminDashboardContent: React.FC = () => {
       console.error("Logout Failed. Error : ", err);
       showToast("Logout failed. Please try again.", "error");
     } finally {
-      setIsLoggingOut(false);
+      setIsLoading(false);
     }
   };
 
@@ -216,6 +216,7 @@ const AdminDashboardContent: React.FC = () => {
         <ListItem disablePadding sx={{ mb: 1 }}>
           <Tooltip title={isCollapsed ? "Settings" : ""} placement="right">
             <ListItemButton
+              onClick={() => setSelectedTab("settings")}
               sx={{
                 borderRadius: 2,
                 justifyContent: isCollapsed ? "center" : "flex-start",
@@ -274,6 +275,8 @@ const AdminDashboardContent: React.FC = () => {
         return <Candidates />;
       case "parties":
         return <Parties />;
+      case "settings":
+        return <Settings />;
       default:
         return <Overview />;
     }
@@ -288,7 +291,7 @@ const AdminDashboardContent: React.FC = () => {
         minWidth: "100vw",
       }}
     >
-      <LoadingOverlay isLoading={isLoggingOut} message="Logging out..." />
+      <LoadingOverlay isLoading={isLoading} message="Logging out..." />
       <Toast message={currentToast} onClose={dismissToast} />
       <AppBar
         position="fixed"
@@ -346,7 +349,7 @@ const AdminDashboardContent: React.FC = () => {
               </IconButton>
             </Tooltip>
             <Tooltip title="Settings">
-              <IconButton>
+              <IconButton onClick={() => setSelectedTab("settings")}>
                 <SettingsIcon />
               </IconButton>
             </Tooltip>

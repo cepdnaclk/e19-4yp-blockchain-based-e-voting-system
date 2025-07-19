@@ -1,42 +1,38 @@
 export interface AdminUserType {
-  id: number;
-  user_name: string;
-  password: string;
-  created_at: Date;
+  id?: number;
+  username: string;
+  hashedPassword: string;
+  createdAt: Date;
 }
 
 export interface ElectionType {
-  id: number;
+  id?: number;
   name: string;
-  start_date_time: Date;
-  end_date_time: Date;
-  created_at?: Date;
-  updated_at?: Date;
+  startDateTime: Date;
+  endDateTime: Date;
+  createdAt?: Date;
 }
 
 export interface PartyType {
-  id: number;
+  id?: number;
   name: string;
   symbol: string;
-  status: 'active' | 'inactive';
-  created_at?: Date;
-  updated_at?: Date;
+  electionId: string;
+  createdAt?: Date;
 }
 
 export interface CandidateType {
-  id: number;
+  id?: number;
   name: string;
   birthday: Date;
   address: string;
-  mobile_number: string;
+  mobileNumber: string;
   email: string;
   photo?: string;
-  party_id?: number;
-  vote_number: string;
-  election_id?: number;
-  status: 'active' | 'inactive';
-  created_at?: Date;
-  updated_at?: Date;
+  partyId?: number;
+  electionId?: number;
+  candidateNumber: string;
+  createdAt?: Date;
 }
 
 export interface CandidateWithPartyType extends CandidateType {
@@ -57,27 +53,10 @@ export interface UpdateElectionRequest {
   endDateTime?: Date;
 }
 
-export interface CreatePartyRequest {
-  name: string;
-  symbol: string;
-}
-
 export interface UpdatePartyRequest {
   name?: string;
   symbol?: string;
-  status?: 'active' | 'inactive';
-}
-
-export interface CreateCandidateRequest {
-  name: string;
-  birthday: Date;
-  address: string;
-  mobileNumber: string;
-  email: string;
-  photo?: string;
-  partyId?: number;
-  voteNumber: string;
-  electionId?: number;
+  status?: "active" | "inactive";
 }
 
 export interface UpdateCandidateRequest {
@@ -90,5 +69,5 @@ export interface UpdateCandidateRequest {
   partyId?: number;
   voteNumber?: string;
   electionId?: number;
-  status?: 'active' | 'inactive';
+  status?: "active" | "inactive";
 }

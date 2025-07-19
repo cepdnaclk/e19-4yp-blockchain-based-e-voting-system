@@ -1,6 +1,7 @@
 const messages = {
   common: {
     error: "An error occurred. Please try again later",
+    internalServerError: "Internal server error",
     success: "Success",
   },
   registration: {
@@ -23,10 +24,26 @@ const messages = {
     createSuccess: "Election created successfully",
     startDateEndDateMismatch:
       "Start date and time must be before end date and time.",
+    hasOverlappingDays:
+      "Another election has overlapping days with this election",
+    duplicateName: "Election with this name already exists",
   },
   voter: {
     registrationIsNotAllowed:
       "Voter registration and key generation is not allowed",
+    registrationSuccess: "Voter registration successful",
+    votersSecretKeyMissing: "Voters secret key is missing",
+    pollingStationSecretKeyMissing: "Polling station secret key is missing",
+    invalidKeys: "Invalid voters or polling station secret keys",
+  },
+  vote: {
+    voterHasAlreadyVoted: "Voter has already voted",
+    candidateDoesNotExist: "Candidate does not exists",
+    invalidCandidateDetails: "Invalid candidate details",
+    voteCastedSuccessfully: "Vote is casted successfully",
+  },
+  results: {
+    resultTallyingSuccessfull: "Result tallying completed successfully",
   },
 };
 

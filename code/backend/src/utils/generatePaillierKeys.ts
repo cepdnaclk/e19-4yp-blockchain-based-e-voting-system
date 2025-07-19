@@ -1,6 +1,6 @@
-import { generateRandomKeys } from 'paillier-bigint';
+import { generateRandomKeys } from "paillier-bigint";
 
-(async () => {
+export const generatePaillierKeys = async () => {
   const { publicKey, privateKey } = await generateRandomKeys(2048);
 
   // Manually serialize key parameters
@@ -14,10 +14,10 @@ import { generateRandomKeys } from 'paillier-bigint';
     publicKey: pubKeyObj,
   };
 
-  const pubKeyStr = Buffer.from(JSON.stringify(pubKeyObj)).toString('base64');
-  const privKeyStr = Buffer.from(JSON.stringify(privKeyObj)).toString('base64');
+  const pubKeyStr = Buffer.from(JSON.stringify(pubKeyObj)).toString("base64");
+  const privKeyStr = Buffer.from(JSON.stringify(privKeyObj)).toString("base64");
 
-  console.log('Copy the following lines into your .env file:');
+  console.log("Copy the following lines into your .env file:");
   console.log(`PAILLIER_PUBLIC_KEY=${pubKeyStr}`);
   console.log(`PAILLIER_PRIVATE_KEY=${privKeyStr}`);
-})(); 
+};

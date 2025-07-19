@@ -1,198 +1,78 @@
-import { dbQuery } from "../common/dbService";
+import { ElectionType } from "../../common/types/adminTypes";
 import {
-  ElectionType,
-  CreateElectionRequest,
-  UpdateElectionRequest,
-} from "../../common/types/adminTypes";
+  blockchainHistoryResponseType,
+  blockchainRecordResponseType,
+} from "../../common/types/blockchainResponseTypes";
+import {
+  blockchainFetchByKey,
+  blockchainPostPut,
+} from "../blockchain/blockchainServices";
 
 export const createNewElection = async (
   name: string,
   startDateTime: Date,
   endDateTime: Date
 ) => {
-  const query =
-    "INSERT INTO election (name, start_date_time, end_date_time) VALUES ($1, $2, $3) RETURNING *";
-  const params = [name, startDateTime, endDateTime];
+  const existingElection: ElectionType | null = await getLastElection();
+  let electionId = 1;
+  if (existingElection) {
+    electionId = existingElection.id ? existingElection.id + 1 : 1;
+  }
 
-  return await dbQuery({
-    query: query,
-    params: params,
-  });
+  const election: ElectionType = {
+    id: electionId,
+    name: name,
+    startDateTime: startDateTime,
+    endDateTime: endDateTime,
+    createdAt: new Date(),
+  };
+  await blockchainPostPut(
+    new Map([["election", JSON.stringify(election)]]),
+    false
+  );
+
+  return election;
+};
+
+export const getLastElection = async (): Promise<ElectionType | null> => {
+  const election: blockchainRecordResponseType = await blockchainFetchByKey(
+    "election",
+    false
+  );
+  if (election.result && election.result.value) {
+    const value = JSON.parse(election.result.value);
+    return {
+      id: value.id,
+      name: value.name,
+      startDateTime: new Date(value.startDateTime),
+      endDateTime: new Date(value.endDateTime),
+      createdAt: value.createdAt ? new Date(value.createdAt) : undefined,
+    };
+  } else {
+    return null;
+  }
 };
 
 export const getAllElections = async (): Promise<ElectionType[]> => {
-  const query = `
-    SELECT * FROM election 
-    ORDER BY start_date_time DESC
-  `;
+  const results: blockchainHistoryResponseType = await blockchainFetchByKey(
+    "election",
+    true
+  );
 
-  const result = await dbQuery({
-    query: query,
-    params: [],
-  });
+  const elections = results.result || [];
 
-  return result.rows;
-};
-
-export const getElectionById = async (
-  id: number
-): Promise<ElectionType | null> => {
-  const query = `
-    SELECT * FROM election 
-    WHERE id = $1
-  `;
-  const params = [id];
-
-  const result = await dbQuery({
-    query: query,
-    params: params,
-  });
-
-  return result.rows[0] || null;
-};
-
-export const getElectionByName = async (
-  name: string
-): Promise<ElectionType | null> => {
-  const query = `
-    SELECT * FROM election 
-    WHERE name = $1
-  `;
-  const params = [name];
-
-  const result = await dbQuery({
-    query: query,
-    params: params,
-  });
-
-  return result.rows[0] || null;
-};
-
-export const updateElection = async (
-  id: number,
-  electionData: UpdateElectionRequest
-): Promise<ElectionType | null> => {
-  const updateFields: string[] = [];
-  const params: any[] = [];
-  let paramIndex = 1;
-
-  if (electionData.name !== undefined) {
-    updateFields.push(`name = $${paramIndex}`);
-    params.push(electionData.name);
-    paramIndex++;
+  if (elections.length === 0) {
+    return [];
+  } else {
+    return elections.map((result) => {
+      const value = JSON.parse(result.value);
+      return {
+        id: value.id,
+        name: value.name,
+        startDateTime: new Date(value.startDateTime),
+        endDateTime: new Date(value.endDateTime),
+        createdAt: value.createdAt ? new Date(value.createdAt) : undefined,
+      };
+    });
   }
-
-  if (electionData.startDateTime !== undefined) {
-    updateFields.push(`start_date_time = $${paramIndex}`);
-    params.push(electionData.startDateTime);
-    paramIndex++;
-  }
-
-  if (electionData.endDateTime !== undefined) {
-    updateFields.push(`end_date_time = $${paramIndex}`);
-    params.push(electionData.endDateTime);
-    paramIndex++;
-  }
-
-  if (updateFields.length === 0) {
-    return await getElectionById(id);
-  }
-
-  params.push(id);
-
-  const query = `
-    UPDATE election 
-    SET ${updateFields.join(", ")} 
-    WHERE id = $${paramIndex} 
-    RETURNING *
-  `;
-
-  const result = await dbQuery({
-    query: query,
-    params: params,
-  });
-
-  return result.rows[0] || null;
-};
-
-export const deleteElection = async (id: number): Promise<boolean> => {
-  const query = `
-    DELETE FROM election 
-    WHERE id = $1
-  `;
-  const params = [id];
-
-  const result = await dbQuery({
-    query: query,
-    params: params,
-  });
-
-  return result.rowCount > 0;
-};
-
-export const getElectionsWithStats = async (): Promise<any[]> => {
-  const query = `
-    SELECT 
-      e.*,
-      COUNT(DISTINCT c.id) as candidate_count,
-      COUNT(DISTINCT v.id) as vote_count
-    FROM election e
-    LEFT JOIN candidates c ON e.id = c.election_id AND c.status = 'active'
-    LEFT JOIN votes v ON e.id = v.election_id
-    GROUP BY e.id
-    ORDER BY e.created_at DESC
-  `;
-
-  const result = await dbQuery({
-    query: query,
-    params: [],
-  });
-
-  return result.rows;
-};
-
-export const getActiveElections = async (): Promise<ElectionType[]> => {
-  const query = `
-    SELECT * FROM election 
-    WHERE start_date_time <= current_timestamp 
-    AND end_date_time >= current_timestamp
-    ORDER BY start_date_time
-  `;
-
-  const result = await dbQuery({
-    query: query,
-    params: [],
-  });
-
-  return result.rows;
-};
-
-export const getUpcomingElections = async (): Promise<ElectionType[]> => {
-  const query = `
-    SELECT * FROM election 
-    WHERE start_date_time > current_timestamp
-    ORDER BY start_date_time
-  `;
-
-  const result = await dbQuery({
-    query: query,
-    params: [],
-  });
-
-  return result.rows;
-};
-
-export const getCompletedElections = async (): Promise<ElectionType[]> => {
-  const query = `
-    SELECT * FROM election 
-    WHERE end_date_time < current_timestamp
-    ORDER BY end_date_time DESC
-  `;
-
-  const result = await dbQuery({
-    query: query,
-    params: [],
-  });
-
-  return result.rows;
 };

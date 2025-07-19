@@ -10,10 +10,10 @@ const accessTokenExpiresIn: string =
 const refreshTokenExpiresIn: string =
   process.env.JWT_REFRESH_TOKEN_EXPIRES_IN?.toString() || "30d";
 
-export const hashPassword = async (password: string): Promise<string> => {
+export const generateHash = async (input: string): Promise<string> => {
   const salt = await bcrypt.genSalt();
-  const hashedPassword = await bcrypt.hash(password, salt);
-  return hashedPassword;
+  const hashedInput = await bcrypt.hash(input, salt);
+  return hashedInput;
 };
 
 export const validateUserName = async (username: string): Promise<boolean> => {
@@ -26,12 +26,12 @@ export const validateUserName = async (username: string): Promise<boolean> => {
   return matchingResultsCount > 0;
 };
 
-export const validatePasswrd = async (
-  password: string,
-  hashedPassword: string
+export const validateHash = async (
+  input: string,
+  hashedInput: string
 ): Promise<boolean> => {
-  const isPasswordMatch = await bcrypt.compare(password, hashedPassword);
-  return isPasswordMatch;
+  const isMatch = await bcrypt.compare(input, hashedInput);
+  return isMatch;
 };
 
 export const generateAccessToken = (username: string): string => {
@@ -52,7 +52,8 @@ export const getAccessTokeContent = (
   accessToken: string
 ): { username: string | null } => {
   try {
-    const res: any = jwt.verify(accessToken, accessTokenSecret);
+    const accessTokenSplitted = accessToken.split("Bearer ")[1];
+    const res: any = jwt.verify(accessTokenSplitted, accessTokenSecret);
     return { username: res.username };
   } catch (err) {
     console.error(err);

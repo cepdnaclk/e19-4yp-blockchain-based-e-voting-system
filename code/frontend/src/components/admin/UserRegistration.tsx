@@ -1,15 +1,25 @@
-import React, { useState } from "react";
-import { Box, Button, Typography, Paper, TextField, Grid, Stack, Divider, Tooltip } from "@mui/material";
-import QrCodeIcon from "@mui/icons-material/QrCode";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
+import QrCodeIcon from "@mui/icons-material/QrCode";
+import {
+  Box,
+  Button,
+  Divider,
+  Paper,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import React, { useState } from "react";
 import { generateAndDownloadQRCode } from "../../utils/qrCodeGeneration";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
 
 const UserRegistration: React.FC = () => {
   const [votersSecretKey, setVotersSecretKey] = useState<string>("");
-  const [pollingStationSecretKey, setPollingStationSecretKey] = useState<string>("");
+  const [pollingStationSecretKey, setPollingStationSecretKey] =
+    useState<string>("");
   const theme = useTheme();
 
   const handleDownload = (key: string, label: string) => {
@@ -39,10 +49,34 @@ const UserRegistration: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3, width: '100%', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-      <Paper sx={{ p: 4, width: '100%', maxWidth: 600, boxShadow: 3, position: 'relative' }}>
+    <Box
+      sx={{
+        p: 3,
+        width: "100%",
+        flex: 1,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+      }}
+    >
+      <Paper
+        sx={{
+          p: 4,
+          width: "100%",
+          maxWidth: 600,
+          boxShadow: 3,
+          position: "relative",
+        }}
+      >
         <Stack spacing={3}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 1,
+            }}
+          >
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
               User Registration
             </Typography>
@@ -72,7 +106,14 @@ const UserRegistration: React.FC = () => {
           </Box>
           <Divider />
           <Stack spacing={4}>
-            <Box sx={{ p: 2, border: `1px solid ${theme.palette.divider}`, borderRadius: 2, background: theme.palette.background.default }}>
+            <Box
+              sx={{
+                p: 2,
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+                background: theme.palette.background.default,
+              }}
+            >
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
                 Voter's Secret Key
               </Typography>
@@ -83,12 +124,14 @@ const UserRegistration: React.FC = () => {
                 variant="outlined"
                 sx={{ mb: 1 }}
               />
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ display: "flex", justifyContent: "center" }}>
                 <Button
                   variant="contained"
                   color="primary"
                   startIcon={<QrCodeIcon />}
-                  onClick={() => handleDownload(votersSecretKey, "Voters Secret Key")}
+                  onClick={() =>
+                    handleDownload(votersSecretKey, "Voters Secret Key")
+                  }
                   sx={{ mt: 1, mb: 1 }}
                   disabled={!votersSecretKey}
                 >
@@ -96,7 +139,14 @@ const UserRegistration: React.FC = () => {
                 </Button>
               </Box>
             </Box>
-            <Box sx={{ p: 2, border: `1px solid ${theme.palette.divider}`, borderRadius: 2, background: theme.palette.background.default }}>
+            <Box
+              sx={{
+                p: 2,
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+                background: theme.palette.background.default,
+              }}
+            >
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
                 Polling Station Secret Key
               </Typography>
@@ -107,12 +157,17 @@ const UserRegistration: React.FC = () => {
                 variant="outlined"
                 sx={{ mb: 1 }}
               />
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ display: "flex", justifyContent: "center" }}>
                 <Button
                   variant="contained"
                   color="primary"
                   startIcon={<QrCodeIcon />}
-                  onClick={() => handleDownload(pollingStationSecretKey, "Polling Station Secret Key")}
+                  onClick={() =>
+                    handleDownload(
+                      pollingStationSecretKey,
+                      "Polling Station Secret Key"
+                    )
+                  }
                   sx={{ mt: 1, mb: 1 }}
                   disabled={!pollingStationSecretKey}
                 >

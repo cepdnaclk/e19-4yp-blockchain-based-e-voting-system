@@ -90,9 +90,7 @@ const ElectionResults: React.FC = () => {
         };
       } = await axios.get("http://localhost:5000/api/votes/elections");
       if (response.status === 200) {
-        const completed = response.data.data.filter(
-          (e) => new Date(e.endDateTime) < new Date()
-        );
+        const completed = response.data.data.filter((e) => e);
         setElections(completed.map((e) => ({ id: e.id, name: e.name })));
         if (completed.length > 0) {
           setSelectedElection(null);

@@ -47,12 +47,17 @@ const Overview: React.FC = () => {
 
   useEffect(() => {
     fetchActiveElections();
-    fetchActiveCandidates();
     fetchSystemStatus();
     fetchBlockchainStatus();
     fetchVoters();
     fetchVotedCount();
   }, []);
+
+  useEffect(() => {
+    if (activeElections.length > 0) {
+      fetchActiveCandidates();
+    }
+  }, [activeElections]);
 
   const fetchActiveElections = async () => {
     try {

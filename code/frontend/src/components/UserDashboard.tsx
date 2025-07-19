@@ -240,9 +240,14 @@ const UserDashboard: React.FC = () => {
       if (response.status === 201 && response.data.data) {
         setShowSuccessOverlay(true);
       }
-    } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
       console.error("Error casting vote:", err);
-      setError("Failed to cast vote. Please try again later.");
+      if (err.response) {
+        setError(err.response.data.message || "Failed to cast vote.");
+      } else {
+        setError("Failed to cast vote. Please try again later.");
+      }
     } finally {
       setIsLoadingVoteCasting(false);
     }

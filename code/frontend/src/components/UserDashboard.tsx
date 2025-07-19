@@ -211,6 +211,7 @@ const UserDashboard: React.FC = () => {
     navigate("/");
   };
 
+
   const handleCastVote = async () => {
     if (!selectedCandidate) {
       setError("Please select a candidate.");
@@ -352,7 +353,7 @@ const UserDashboard: React.FC = () => {
                           {userProfile.votingHistory.length === 0 ? (
                             <TableRow>
                               <TableCell colSpan={3} align="center">
-                                No voting history available
+                                No voting history available.
                               </TableCell>
                             </TableRow>
                           ) : (
@@ -468,6 +469,7 @@ const UserDashboard: React.FC = () => {
                   spacing={2}
                   justifyContent="center"
                 >
+
                   <Button
                     variant="outlined"
                     size="large"
@@ -505,6 +507,7 @@ const UserDashboard: React.FC = () => {
                   >
                     View Results
                   </Button>
+
                 </Stack>
               </>
             ) : (
@@ -517,9 +520,11 @@ const UserDashboard: React.FC = () => {
                   color="text.secondary"
                   sx={{ mb: 3 }}
                 >
+
                   The election is currently ongoing. Cast your vote to
                   participate in the democratic process.
                 </Typography>
+
                 <Button
                   variant="contained"
                   size="large"
@@ -541,6 +546,8 @@ const UserDashboard: React.FC = () => {
                 </Button>
               </>
             )}
+
+
             <Box
               sx={{
                 mt: 4,
@@ -549,12 +556,10 @@ const UserDashboard: React.FC = () => {
                 borderRadius: 2,
               }}
             >
-              <Typography variant="subtitle1" gutterBottom>
-                Final Results
+              <Typography variant="subtitle1" gutterBottom> Final Results
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                The final results will be displayed here once the election
-                period ends.
+                The final results will be displayed here once the election period ends.
               </Typography>
             </Box>
           </Box>
@@ -610,6 +615,7 @@ const UserDashboard: React.FC = () => {
         </Toolbar>
       </AppBar>
 
+
       <Box sx={{ display: "flex", flex: 1, mt: 8 }}>
         <Drawer
           variant="permanent"
@@ -628,6 +634,7 @@ const UserDashboard: React.FC = () => {
         >
           <Box sx={{ overflow: "auto" }}>
             <List>
+
               {sidePanelItems.map((item, index) => (
                 <React.Fragment key={item.text}>
                   <ListItem
@@ -647,6 +654,7 @@ const UserDashboard: React.FC = () => {
               ))}
             </List>
           </Box>
+
         </Drawer>
 
         <Container
@@ -706,6 +714,7 @@ const UserDashboard: React.FC = () => {
 
                 {error && (
                   <Zoom in>
+
                     <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
                       {error}
                     </Alert>
@@ -840,6 +849,7 @@ const UserDashboard: React.FC = () => {
                       transform: "translateY(-50%)",
                       mt: 4,
                     }}
+
                   >
                     <Typography
                       variant="subtitle1"
@@ -849,6 +859,7 @@ const UserDashboard: React.FC = () => {
                       }}
                     >
                       Your Vote
+
                     </Typography>
                     {selectedCandidate && (
                       <Box sx={{ textAlign: "center" }}>
@@ -864,6 +875,7 @@ const UserDashboard: React.FC = () => {
                         </Typography>
                       </Box>
                     )}
+                    
                     <Button
                       variant="contained"
                       color="primary"

@@ -60,7 +60,7 @@ const query = async (
       );
     }
 
-    result = JSON.parse(result.toString());
+    result = JSON.parse(result.length > 0 ? result.toString() : "[]");
     return result;
   } catch (error) {
     console.error(`Failed to evaluate transaction: ${error}`);

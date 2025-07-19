@@ -14,6 +14,7 @@ Make sure the following tools are installed on your system:
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
 - [Go (Golang)](https://golang.org/)
+- WSL - Use `wsl --install` command in Windows
 
 ---
 

@@ -9,6 +9,7 @@ import UserDashboard from "./components/UserDashboard";
 import UserLogin from "./components/UserLogin";
 import Unauthorized from "./components/Unauthorized";
 import ElectionResults from "./components/ElectionResults";
+import QRScanLoginPage from "./components/QR/QRScanLoginPage";
 
 const router = createBrowserRouter([
   {
@@ -16,6 +17,7 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { path: "", element: <UserLogin /> },
+      { path: "scan-login", element: <QRScanLoginPage /> },
       { path: "user/dashboard", element: <UserDashboard /> },
       { path: "admin/login", element: <AdminLogin /> },
       { path: "admin/forgot-password", element: <AdminForgotPassword /> },

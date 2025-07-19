@@ -4,6 +4,7 @@ import { AppBar, Toolbar, Button, Typography, Box } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 
 const Navigation: React.FC = () => {
   const navigate = useNavigate();
@@ -55,6 +56,14 @@ const Navigation: React.FC = () => {
                 sx={{ mr: 2 }}
               >
                 Results
+              </Button>
+              <Button
+                color="inherit"
+                startIcon={<QrCodeScannerIcon />}
+                onClick={() => navigate("/scan-login")}
+                sx={{ mr: 2 }}
+              >
+                QR Code Login
               </Button>
             </>
           )}

@@ -10,6 +10,7 @@ import {
   Groups as PartyIcon,
   Settings as SettingsIcon,
 } from "@mui/icons-material";
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import {
   AppBar,
   Avatar,
@@ -40,6 +41,7 @@ import Parties from "./admin/Parties";
 import LoadingOverlay from "./LoadingOverlay";
 import Toast from "./Toast";
 import Settings from "./admin/Settings";
+import UserRegistration from "./admin/UserRegistration";
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 80;
@@ -98,6 +100,7 @@ const AdminDashboardContent: React.FC = () => {
     { id: "elections", text: "Elections", icon: <ElectionIcon /> },
     { id: "parties", text: "Parties", icon: <PartyIcon /> },
     { id: "candidates", text: "Candidates", icon: <CandidateIcon /> },
+    { id: "user-registration", text: "User Registration", icon: <PersonAddIcon /> },
   ];
 
   const drawer = (
@@ -277,6 +280,8 @@ const AdminDashboardContent: React.FC = () => {
         return <Parties />;
       case "settings":
         return <Settings />;
+      case "user-registration":
+        return <UserRegistration />;
       default:
         return <Overview />;
     }

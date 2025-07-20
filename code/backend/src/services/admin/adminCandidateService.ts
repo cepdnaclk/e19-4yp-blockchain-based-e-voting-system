@@ -37,6 +37,7 @@ export const createCandidate = async (
   return candidate;
 };
 
+// This function retrieves the last candidate from the blockchain.
 export const getLastCandidate = async (): Promise<CandidateType | null> => {
   const candidateHistory: blockchainRecordResponseType =
     await blockchainFetchByKey("candidate");
@@ -61,6 +62,7 @@ export const getLastCandidate = async (): Promise<CandidateType | null> => {
   }
 };
 
+// This function retrieves all candidates from the blockchain.
 export const getAllCandidates = async (): Promise<CandidateType[]> => {
   const candidateHistory: blockchainHistoryResponseType =
     await blockchainFetchByKey("candidate", true);

@@ -1,7 +1,0 @@
-CREATE TABLE IF NOT EXISTS votes (
-    id SERIAL PRIMARY KEY,
-    voter_id INTEGER NOT NULL REFERENCES voters(id),
-    candidate_id INTEGER NOT NULL REFERENCES candidates(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(voter_id)
-); 

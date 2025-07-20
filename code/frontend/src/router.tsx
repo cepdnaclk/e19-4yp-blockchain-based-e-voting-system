@@ -11,6 +11,7 @@ import Unauthorized from "./components/Unauthorized";
 import ElectionResults from "./components/ElectionResults";
 import QRScanLoginPage from "./components/QR/QRScanLoginPage";
 
+// This defines the routes for the application using React Router.
 const router = createBrowserRouter([
   {
     path: "/",

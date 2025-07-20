@@ -79,7 +79,7 @@ The Candidate Registration Module ensures only eligible candidates are registere
 ### Voting Process
 
 ![votin-process-high-level-overview](assets/images/voting-phase-II.PNG)
-The Voting Module enables voters to cast encrypted votes securely using threshold cryptography and homomorphic encryption. Votes are stored off-chain in IPFS, while only their hashes are recorded on the blockchain.
+The Voting Module enables voters to cast encrypted votes securely using threshold cryptography and homomorphic encryption.Hashed votes are recorded on the blockchain.
 
 **Components:**
 

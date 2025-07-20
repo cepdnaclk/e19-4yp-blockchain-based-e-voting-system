@@ -1,1 +1,0 @@
-ALTER TABLE voters ADD COLUMN secret_key_hash VARCHAR(255);

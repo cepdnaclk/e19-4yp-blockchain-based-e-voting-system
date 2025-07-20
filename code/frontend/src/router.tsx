@@ -10,6 +10,7 @@ import UserLogin from "./components/UserLogin";
 import Unauthorized from "./components/Unauthorized";
 import ElectionResults from "./components/ElectionResults";
 
+// This defines the routes for the application using React Router.
 const router = createBrowserRouter([
   {
     path: "/",

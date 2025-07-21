@@ -1,3 +1,4 @@
+// Entry point for the backend server
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -13,29 +14,30 @@ import errorHandling from "./middleware/errorHandlingMiddleware";
 
 const app: Express = express();
 
-// Setup Middleware
+// Setup global middleware (body parsing, CORS, etc.)
 setupMiddleware(app);
 
-// Debug middleware
+// Debug middleware for logging requests
 debugMiddleware(app);
 
-// Routes
+// Main API routes (admin, auth, etc.)
 app.use("/api", mainRouter);
 
-// Voting router
+// Voting-related routes (vote casting, candidate listing, etc.)
 app.use("/api/votes", voteRoutes);
 
-// Voter login router
+// Voter login and registration routes
 app.use("/api/voter", voterLoginRoutes);
 
-// Voting router
+// Election results routes
 app.use("/api/results", resultRouter);
 
-// Error handling middleware
+// Global error handling middleware
 errorHandling(app);
 
 const PORT = process.env.PORT || 3000;
 
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Test the server at: http://localhost:${PORT}/api/test`);

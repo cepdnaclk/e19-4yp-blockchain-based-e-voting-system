@@ -12,24 +12,27 @@ import (
 	"github.com/hyperledger/fabric/common/flogging"
 )
 
-// SmartContract Define the Smart Contract structure
+// SmartContract defines the structure for the voting chaincode
+// This contract manages vote hashes and their history on the blockchain
+// All voting actions are recorded immutably
+//
 type SmartContract struct {
 }
 
-// Data :  Define the data structure, with 2 properties.  Structure tags are used by encoding/json library
+// Data structure for storing key-value pairs (e.g., vote hashes)
 type Data struct {
 	Key   string `json:"key"`
 	Value  string `json:"value"`
 }
 
-// Init ;  Method for initializing smart contract
+// Init initializes the smart contract (runs once when chaincode is instantiated)
 func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
 	return shim.Success(nil)
 }
 
 var logger = flogging.MustGetLogger("chainVote_cc")
 
-// Invoke :  Method for INVOKING smart contract
+// Invoke routes function calls to the appropriate handler
 func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response {
 
 	function, args := APIstub.GetFunctionAndParameters()
@@ -52,11 +55,13 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 	}
 }
 
+// Initializes the ledger (can be used to set up initial state)
 func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) sc.Response {
 	logger.Info("Initializing ledger")
 	return shim.Success([]byte("Ledger initialized successfully"))
 }
 
+// Retrieves the value for a given key (e.g., vote hash)
 func (s *SmartContract) getHash(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 
 	if len(args) != 1 {
@@ -67,6 +72,7 @@ func (s *SmartContract) getHash(APIstub shim.ChaincodeStubInterface, args []stri
 	return shim.Success(res)
 }
 
+// Stores a new key-value pair (e.g., a new vote hash)
 func (s *SmartContract) postHash(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 
 	if len(args) != 2 {
@@ -80,7 +86,7 @@ func (s *SmartContract) postHash(APIstub shim.ChaincodeStubInterface, args []str
 	return shim.Success(dataAsBytes)
 }
 
-
+// Updates the value for an existing key (e.g., update a vote hash)
 func (s *SmartContract) putHash(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 
 	if len(args) != 2 {
@@ -99,6 +105,7 @@ func (s *SmartContract) putHash(APIstub shim.ChaincodeStubInterface, args []stri
 	return shim.Success(dataAsBytes)
 }
 
+// Retrieves the full history for a given key (audit trail for a vote hash)
 func (t *SmartContract) getHistory(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 
 	if len(args) < 1 {
@@ -164,7 +171,7 @@ func (t *SmartContract) getHistory(APIstub shim.ChaincodeStubInterface, args []s
 	return shim.Success(buffer.Bytes())
 }
 
-// The main function is only relevant in unit test mode. Only included here for completeness.
+// The main function starts the chaincode in the Hyperledger Fabric network
 func main() {
 
 	// Create a new Smart Contract

@@ -27,6 +27,7 @@ import { useNavigate } from "react-router-dom";
 import LoadingOverlay from "./LoadingOverlay";
 import SuccessOverlay from "./SuccessOverlay";
 
+// Types for candidate, party, and election data
 interface Candidate {
   id: number;
   name: string;
@@ -79,7 +80,9 @@ interface CandidateRes {
   createdAt: string;
 }
 
+// Main user dashboard component for voters
 const UserDashboard: React.FC = () => {
+  // State for selected candidate, dialog, errors, and loading
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
     null
   );
@@ -94,10 +97,12 @@ const UserDashboard: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
 
+  // Fetch elections on mount
   useEffect(() => {
     fetchElections();
   }, []);
 
+  // Fetch parties when elections are loaded
   useEffect(() => {
     if (activeElections.length > 0) {
       fetchParties();
@@ -106,6 +111,7 @@ const UserDashboard: React.FC = () => {
     }
   }, [activeElections]);
 
+  // Fetch candidates when parties are loaded
   useEffect(() => {
     if (activeParties.length > 0) {
       fetchCandidates();
@@ -114,6 +120,7 @@ const UserDashboard: React.FC = () => {
     }
   }, [activeParties]);
 
+  // Fetch candidates for active elections and parties
   const fetchCandidates = async () => {
     try {
       setIsLoadingCandidate(true);
@@ -121,11 +128,13 @@ const UserDashboard: React.FC = () => {
       const response: { data: { message: string; data: CandidateRes[] } } =
         await axios.get("http://localhost:5000/api/votes/candidates");
       const data: CandidateRes[] = response.data.data;
+      // Filter candidates for active elections
       const activeCandidates = data.filter((candidate) =>
         activeElections.some(
           (election) => Number(election.id) === Number(candidate.electionId)
         )
       );
+      // Map to UI-friendly structure
       const candidates: Candidate[] = activeCandidates.map(
         (candidate: CandidateRes) => ({
           id: candidate.id,
@@ -156,6 +165,7 @@ const UserDashboard: React.FC = () => {
     }
   };
 
+  // Fetch active elections from API
   const fetchElections = async () => {
     try {
       setIsLoadingCandidate(true);
@@ -166,6 +176,7 @@ const UserDashboard: React.FC = () => {
       } = await axios.get("http://localhost:5000/api/votes/elections");
 
       if (response && response.status === 200) {
+        // Only include elections that are currently active
         const activeElections: Election[] = response.data.data
           .filter(
             (election) =>
@@ -181,6 +192,7 @@ const UserDashboard: React.FC = () => {
     }
   };
 
+  // Fetch parties for active elections
   const fetchParties = async () => {
     try {
       setIsLoadingCandidate(true);
@@ -191,6 +203,7 @@ const UserDashboard: React.FC = () => {
       } = await axios.get("http://localhost:5000/api/votes/parties");
 
       if (response && response.status === 200) {
+        // Only include parties for active elections
         const activeParties: Party[] = response.data.data
           .filter((party) =>
             activeElections.some(

@@ -79,22 +79,20 @@ The Candidate Registration Module ensures only eligible candidates are registere
 ### Voting Process
 
 ![votin-process-high-level-overview](assets/images/voting-phase-II.PNG)
-The Voting Module enables voters to cast encrypted votes securely using threshold cryptography and homomorphic encryption.Hashed votes are recorded on the blockchain.
+The Voting Module enables voters to cast encrypted votes securely using threshold cryptography and homomorphic encryption.Encrypted votes are recorded on the blockchain.
 
 **Components:**
 
 - **Voter Authentication:** Voters must provide both key parts for authentication.
 - **Encrypted Ballot Casting:** Votes are encrypted using homomorphic encryption.
-- **IPFS Storage:** Encrypted votes are stored in a decentralized manner.
-- **Blockchain:** Stores only the IPFS hash to ensure vote integrity.
+- **Blockchain:** Stores encrypted vote.
 
 **Process Flow:**
 
 1. Voter authenticates using both key parts.
 2. Voter selects a candidate.
-3. Vote is encrypted using homomorphic encryption and stored on IPFS.
-4. The IPFS hash is recorded on the blockchain.
-
+3. Vote is encrypted using homomorphic encryption and stored on blockchain.
+   
 ---
 
 ### Counting and Result Publication
@@ -106,14 +104,14 @@ The Counting & Result Module aggregates encrypted votes off-chain using homomorp
 
 - **Homomorphic Vote Aggregation:** Computes results without decrypting individual votes.
 - **Threshold Decryption:** Only the final tally is decrypted using multi-party decryption.
-- **Blockchain & IPFS:** Stores final election results and enables public verification.
+- **Blockchain:** Stores final election results and enables public verification.
 - **Web Interface:** Displays results in a verifiable and transparent manner.
 
 **Process Flow:**
 
-1. Encrypted votes are retrieved from IPFS.
+1. Encrypted votes are retrieved from blockchain.
 2. Homomorphic encryption is used to compute vote tallies without decryption.
-3. The final tally is decrypted and stored on IPFS; its hash is recorded on the blockchain.
+3. The final tally is decrypted and stored on blockchain.
 4. The results are displayed via a secure web interface.
 
 ---

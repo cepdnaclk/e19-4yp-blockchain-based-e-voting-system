@@ -1,5 +1,5 @@
 ---
-# ChainVote: Blockchain Based E-Voting System
+# ChainVote: Blockchain-Based E-Voting System
 ---
 
 ## Project Description
